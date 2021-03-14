@@ -9,12 +9,12 @@ const RESOURCES = {
 "assets/AssetManifest.json": "2efbb41d7877d10aac9d091f58ccd7b9",
 "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
 "assets/fonts/MaterialIcons-Regular.otf": "1288c9e28052e028aba623321f7826ac",
-"main.dart.js": "fad8473182ade59ebd72e45965a09b42",
+"main.dart.js": "6f7e476e02a10c9af290b5f0c15f5531",
 "version.json": "710834bb81b462cacbfab1157d4f1ad3",
 "icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1",
 "icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
-"index.html": "4323724dc46e3a3b24af48dae58598ab",
-"/": "4323724dc46e3a3b24af48dae58598ab",
+"index.html": "4aaa9c7c83ea3d9736a283ef6fa6dad9",
+"/": "4aaa9c7c83ea3d9736a283ef6fa6dad9",
 "manifest.json": "391a20863ec8bcec0698bf5b6d16d1bb"
 };
 
