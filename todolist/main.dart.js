@@ -63076,7 +63076,7 @@ m=n.gh6(n)
 J.ci(m.gcI(m),"X-Require-Whisk-Auth","mysecret123")
 m=t.Q
 s=3
-return P.a3(n.q1("https://rosidoti-prgizac7tiu-apigcp.nimbella.io/api/api/user-access",P.aA(["username",a],m,m),m),$async$uv)
+return P.a3(n.q1("https://rosidotidev.nuvolaris.app/api/v1/web/rosidotidev/default/user-access",P.aA(["username",a],m,m),m),$async$uv)
 case 3:p=c
 P.dw(C.c.I("useracces response.data1 ",p.a))
 o=J.ai(C.a9.mi(0,p.a,null),"response")
@@ -63175,7 +63175,7 @@ n=o.gh6(o)
 J.ci(n.gcI(n),"X-Require-Whisk-Auth","mysecret123")
 n=t.Q
 s=3
-return P.a3(o.q1("https://rosidoti-prgizac7tiu-apigcp.nimbella.io/api/api/item-list",P.aA(["user-code",b],n,n),n),$async$mG)
+return P.a3(o.q1("https://rosidotidev.nuvolaris.app/api/v1/web/rosidotidev/default/item-list",P.aA(["user-code",b],n,n),n),$async$mG)
 case 3:m=d
 P.dw(C.c.I("list response.data1 ",m.a))
 l=J.ai(J.ai(C.a9.mi(0,m.a,null),"response"),"items")
@@ -63197,7 +63197,7 @@ n=o.gh6(o)
 J.ci(n.gcI(n),"X-Require-Whisk-Auth","mysecret123")
 n=t.Q
 s=3
-return P.a3(o.q1("https://rosidoti-prgizac7tiu-apigcp.nimbella.io/api/api/item-del",P.aA(["user-code",b,"code",c],n,n),n),$async$tP)
+return P.a3(o.q1("https://rosidotidev.nuvolaris.app/api/v1/web/rosidotidev/default/item-del",P.aA(["user-code",b,"code",c],n,n),n),$async$tP)
 case 3:p=e
 P.dw(C.c.I("del response.data1 ",p.a))
 q=J.d(J.ai(J.ai(C.a9.mi(0,p.a,null),"response"),"result"),"ok")?"RES_OK":"RES_NO_OK"
@@ -63215,7 +63215,7 @@ n=o.gh6(o)
 J.ci(n.gcI(n),"X-Require-Whisk-Auth","mysecret123")
 n=t.Q
 s=3
-return P.a3(o.q1("https://rosidoti-prgizac7tiu-apigcp.nimbella.io/api/api/item-save",P.aA(["user-code",b,"content",c],n,n),n),$async$qv)
+return P.a3(o.q1("https://rosidotidev.nuvolaris.app/api/v1/web/rosidotidev/default/item-save",P.aA(["user-code",b,"content",c],n,n),n),$async$qv)
 case 3:p=e
 P.dw(C.c.I("save response.data1 ",p.a))
 q=J.d(J.ai(J.ai(C.a9.mi(0,p.a,null),"response"),"result"),"ok")?"RES_OK":"RES_NO_OK"
@@ -63233,7 +63233,7 @@ n=o.gh6(o)
 J.ci(n.gcI(n),"X-Require-Whisk-Auth","mysecret123")
 n=t.Q
 s=3
-return P.a3(o.q1("https://rosidoti-prgizac7tiu-apigcp.nimbella.io/api/api/item-update",P.aA(["user-code",b,"content",c,"code",d],n,n),n),$async$v3)
+return P.a3(o.q1("https://rosidotidev.nuvolaris.app/api/v1/web/rosidotidev/default/item-update",P.aA(["user-code",b,"content",c,"code",d],n,n),n),$async$v3)
 case 3:p=f
 P.dw(C.c.I("updated response.data1 ",p.a))
 q=J.d(J.ai(J.ai(C.a9.mi(0,p.a,null),"response"),"result"),"ok")?"RES_OK":"RES_NO_OK"
