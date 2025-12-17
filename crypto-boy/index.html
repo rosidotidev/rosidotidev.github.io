@@ -19,7 +19,10 @@
 
         <div class="mb-6">
             <label class="block text-sm font-medium mb-1">Chiave Simmetrica (Password)</label>
-            <input type="password" id="password" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="Inserisci la tua chiave segreta...">
+            <div class="relative">
+                <input type="password" id="password" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="Inserisci la tua chiave segreta...">
+                <button onclick="togglePassword()" class="absolute right-2 top-1/2 -translate-y-1/2 text-xl">👁️</button>
+            </div>
         </div>
 
         <div id="sectionEnc" class="space-y-4">
@@ -30,7 +33,7 @@
             <button onclick="handleEncrypt()" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition">Genera Testo Criptato</button>
             <div>
                 <label class="block text-sm font-medium mb-1 text-green-600">Risultato (Base64)</label>
-                <textarea id="resEnc" readonly class="w-full p-2 border rounded-md bg-gray-50 text-xs font-mono" rows="3"></textarea>
+                <textarea id="resEnc" class="w-full p-2 border rounded-md bg-gray-50 text-xs font-mono" rows="3"></textarea>
             </div>
         </div>
 
@@ -42,14 +45,19 @@
             <button onclick="handleDecrypt()" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">Decripta Messaggio</button>
             <div>
                 <label class="block text-sm font-medium mb-1 text-indigo-600">Messaggio Originale</label>
-                <textarea id="resDec" readonly class="w-full p-2 border rounded-md bg-gray-50" rows="3"></textarea>
+                <textarea id="resDec" class="w-full p-2 border rounded-md bg-gray-50" rows="3"></textarea>
             </div>
         </div>
     </div>
 
     <script>
+        // Funzione aggiunta per mostrare/nascondere password
+        function togglePassword() {
+            const p = document.getElementById('password');
+            p.type = p.type === 'password' ? 'text' : 'password';
+        }
+
         // --- Logica Crittografica (Web Crypto API) ---
-        
         async function deriveKey(password) {
             const encoder = new TextEncoder();
             const baseKey = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]);
@@ -66,17 +74,13 @@
             const text = document.getElementById('textToEnc').value;
             const pwd = document.getElementById('password').value;
             if(!text || !pwd) return alert("Inserisci testo e password!");
-
             const key = await deriveKey(pwd);
             const iv = crypto.getRandomValues(new Uint8Array(12));
             const encoded = new TextEncoder().encode(text);
             const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
-
-            // Uniamo IV e dati criptati per il trasporto
             const combined = new Uint8Array(iv.length + encrypted.byteLength);
             combined.set(iv);
             combined.set(new Uint8Array(encrypted), iv.length);
-            
             document.getElementById('resEnc').value = btoa(String.fromCharCode(...combined));
         }
 
@@ -84,13 +88,11 @@
             const b64 = document.getElementById('textToDec').value;
             const pwd = document.getElementById('password').value;
             if(!b64 || !pwd) return alert("Inserisci dati e password!");
-
             try {
-                const combined = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+                const combined = Uint8Array.from(atob(b64.trim()), c => c.charCodeAt(0));
                 const iv = combined.slice(0, 12);
                 const data = combined.slice(12);
                 const key = await deriveKey(pwd);
-                
                 const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
                 document.getElementById('resDec').value = new TextDecoder().decode(decrypted);
             } catch (e) {
