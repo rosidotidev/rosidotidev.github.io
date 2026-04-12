@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/components/categories/categories.css"],
-  "sourcesContent": [":host {\r\n  display: block;\r\n  padding: 8px 0;\r\n}\r\n\r\nmat-card {\r\n  padding: 8px;\r\n}\r\n\r\n.add-row {\r\n  display: flex;\r\n  gap: 16px;\r\n  align-items: flex-start;\r\n  padding-top: 20px;\r\n}\r\n\r\n.add-row mat-form-field {\r\n  flex: 1;\r\n}\r\n\r\n.empty-state {\r\n  text-align: center;\r\n  padding: 48px 0;\r\n  color: var(--mat-sys-on-surface-variant, #44474e);\r\n  font-size: 16px;\r\n}\r\n\r\nmat-chip-set {\r\n  margin-top: 20px;\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 8px;\r\n}\r\n"],
-  "mappings": ";AAAA;AACE,WAAS;AACT,WAAS,IAAI;AACf;AAEA;AACE,WAAS;AACX;AAEA,CAAC;AACC,WAAS;AACT,OAAK;AACL,eAAa;AACb,eAAa;AACf;AAEA,CAPC,QAOQ;AACP,QAAM;AACR;AAEA,CAAC;AACC,cAAY;AACZ,WAAS,KAAK;AACd,SAAO,IAAI,4BAA4B,EAAE;AACzC,aAAW;AACb;AAEA;AACE,cAAY;AACZ,WAAS;AACT,aAAW;AACX,OAAK;AACP;",
-  "names": []
-}

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/components/expense-form/expense-form.css"],
-  "sourcesContent": [":host {\r\n  display: block;\r\n  padding: 8px 0;\r\n}\r\n\r\nmat-card {\r\n  padding: 8px;\r\n}\r\n\r\n.form-grid {\r\n  display: grid;\r\n  grid-template-columns: 1fr 1fr;\r\n  gap: 8px 20px;\r\n  padding-top: 20px;\r\n}\r\n\r\n.form-grid mat-form-field {\r\n  margin-bottom: 4px;\r\n}\r\n\r\n.full-span {\r\n  grid-column: 1 / -1;\r\n}\r\n\r\n.form-actions {\r\n  display: flex;\r\n  gap: 16px;\r\n  padding-top: 16px;\r\n}\r\n\r\n.form-actions button {\r\n  min-width: 140px;\r\n}\r\n\r\n@media (max-width: 600px) {\r\n  .form-grid {\r\n    grid-template-columns: 1fr;\r\n  }\r\n}\r\n"],
-  "mappings": ";AAAA;AACE,WAAS;AACT,WAAS,IAAI;AACf;AAEA;AACE,WAAS;AACX;AAEA,CAAC;AACC,WAAS;AACT,yBAAuB,IAAI;AAC3B,OAAK,IAAI;AACT,eAAa;AACf;AAEA,CAPC,UAOU;AACT,iBAAe;AACjB;AAEA,CAAC;AACC,eAAa,EAAE,EAAE;AACnB;AAEA,CAAC;AACC,WAAS;AACT,OAAK;AACL,eAAa;AACf;AAEA,CANC,aAMa;AACZ,aAAW;AACb;AAEA,QAAO,WAAY;AACjB,GA1BD;AA2BG,2BAAuB;AACzB;AACF;",
-  "names": []
-}
