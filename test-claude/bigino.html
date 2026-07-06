@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CCA-F Cheat Sheet — Claude Certified Architect Foundations</title>
+<meta name="description" content="Quick pre-exam review for the Claude Certified Architect – Foundations exam: key concepts and exam traps across all 5 domains.">
+<style>
+:root{
+  --bg:#f6f5f1; --surface:#ffffff; --surface2:#efede7; --text:#1c1b18; --muted:#6b6960;
+  --border:#e2dfd6; --accent:#c96442; --gold:#b8860b;
+  --d1:#5b5bd6; --d2:#0d9488; --d3:#d97706; --d4:#db2777; --d5:#16a34a; --ex:#64748b;
+  --trap-bg:#fdf6ec; --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.05);
+}
+[data-theme="dark"]{
+  --bg:#151412; --surface:#201e1b; --surface2:#2a2825; --text:#ece9e2; --muted:#a09c92;
+  --border:#37342f; --accent:#e08b6d; --gold:#e0b53f;
+  --d1:#8f8ff5; --d2:#2dd4bf; --d3:#fbbf24; --d4:#f472b6; --d5:#4ade80; --ex:#94a3b8;
+  --trap-bg:#2b2418; --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+header.top{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--border)}
+.wrap{max-width:880px;margin:0 auto;padding:0 14px}
+.masthead{display:flex;align-items:center;gap:10px;padding:12px 0 6px}
+.masthead h1{font-size:1.15rem;margin:0;font-weight:800;letter-spacing:-.01em;flex:1}
+.masthead h1 small{display:block;font-size:.7rem;font-weight:500;color:var(--muted);letter-spacing:.02em}
+.iconbtn{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-size:.95rem;cursor:pointer;color:var(--text);line-height:1}
+.iconbtn:active{transform:scale(.96)}
+a.simlink{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border-radius:10px;padding:7px 12px;font-size:.8rem;font-weight:700;text-decoration:none;white-space:nowrap}
+.progress{height:5px;background:var(--surface2);border-radius:99px;overflow:hidden;margin:2px 0 8px}
+.progress>div{height:100%;width:0%;background:linear-gradient(90deg,var(--d2),var(--d5));border-radius:99px;transition:width .3s}
+.progress-label{font-size:.68rem;color:var(--muted);text-align:right;margin:-4px 0 6px}
+.searchrow{display:flex;gap:8px;padding-bottom:8px}
+.searchrow input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:.9rem;color:var(--text);outline:none}
+.searchrow input:focus{border-color:var(--accent)}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;padding:0 14px 10px;max-width:880px;margin:0 auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:99px;padding:6px 13px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.tab.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+main{padding:16px 0 60px}
+section.domain{margin-bottom:10px}
+.dhead{display:flex;align-items:baseline;gap:10px;margin:26px 0 4px;flex-wrap:wrap}
+.dhead h2{font-size:1.3rem;margin:0;font-weight:800;letter-spacing:-.01em}
+.weight{font-size:.72rem;font-weight:800;padding:3px 9px;border-radius:99px;color:#fff}
+.dsub{font-size:.8rem;color:var(--muted);margin:0 0 12px}
+.grouplabel{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+.grouplabel::after{content:"";flex:1;height:1px;background:var(--border)}
+details.card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--dc,var(--border));border-radius:12px;margin-bottom:8px;box-shadow:var(--shadow);overflow:hidden}
+details.card[data-t="trap"]{background:var(--trap-bg)}
+details.card summary{display:flex;align-items:center;gap:10px;padding:11px 12px;cursor:pointer;list-style:none;user-select:none}
+details.card summary::-webkit-details-marker{display:none}
+.cardtitle{flex:1;font-size:.92rem;font-weight:700;line-height:1.3}
+.cardtitle .tag{font-size:.62rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--dc);display:block;margin-bottom:1px}
+.chev{color:var(--muted);font-size:.75rem;transition:transform .2s}
+details[open] .chev{transform:rotate(90deg)}
+.done-btn{flex:0 0 auto;width:24px;height:24px;border-radius:50%;border:2px solid var(--border);background:transparent;cursor:pointer;font-size:.7rem;line-height:1;color:transparent;padding:0}
+details.card.done{opacity:.55}
+details.card.done .done-btn{background:var(--d5);border-color:var(--d5);color:#fff}
+.cardbody{padding:0 14px 13px;font-size:.88rem;color:var(--text)}
+.cardbody p{margin:.4em 0}
+.cardbody code{background:var(--surface2);border-radius:5px;padding:1px 5px;font-size:.82em;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.cardbody ul,.cardbody ol{margin:.4em 0;padding-left:1.2em}
+.cardbody li{margin:.25em 0}
+.refs{margin-top:8px;display:flex;flex-wrap:wrap;gap:5px}
+.ref{font-size:.65rem;font-weight:700;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 7px;color:var(--muted)}
+.ref.ver{color:var(--d5);border-color:var(--d5)}
+.gold-card{border-left-color:var(--gold)!important}
+table.scen{width:100%;border-collapse:collapse;font-size:.82rem;margin:.5em 0}
+table.scen th,table.scen td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+table.scen th{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+blockquote{margin:.5em 0;padding:6px 12px;border-left:3px solid var(--accent);background:var(--surface2);border-radius:0 8px 8px 0;font-style:italic;font-size:.86em}
+footer{border-top:1px solid var(--border);padding:20px 0 40px;font-size:.75rem;color:var(--muted)}
+footer .wrap{display:flex;flex-direction:column;gap:6px}
+.hidden{display:none!important}
+@media (min-width:700px){
+  .masthead h1{font-size:1.35rem}
+  .cardtitle{font-size:.98rem}
+  .cardbody{font-size:.92rem}
+}
+@media print{
+  header.top,nav.tabs,.done-btn,.chev,a.simlink{display:none!important}
+  details.card{break-inside:avoid;box-shadow:none}
+  body{background:#fff;color:#000}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="masthead">
+      <h1>📘 CCA-F Cheat Sheet<small>Claude Certified Architect — Foundations</small></h1>
+      <a class="simlink" href="exam-simulator.html">🎯 Simulator</a>
+      <button class="iconbtn" id="themeBtn" title="Light/dark theme">🌓</button>
+    </div>
+    <div class="progress"><div id="progFill"></div></div>
+    <div class="progress-label" id="progLabel"></div>
+    <div class="searchrow">
+      <input type="search" id="q" placeholder="Search… (e.g. tool_choice, escalation, CLAUDE.md)" autocomplete="off">
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-f="all">All</button>
+    <button class="tab" data-f="ex">ℹ️ The Exam</button>
+    <button class="tab" data-f="d1">D1 · 27%</button>
+    <button class="tab" data-f="d2">D2 · 18%</button>
+    <button class="tab" data-f="d3">D3 · 20%</button>
+    <button class="tab" data-f="d4">D4 · 20%</button>
+    <button class="tab" data-f="d5">D5 · 15%</button>
+    <button class="tab" data-f="gold">⭐ Golden Rules</button>
+  </nav>
+</header>
+
+<main class="wrap">
+
+<!-- ══════════════ THE EXAM ══════════════ -->
+<section class="domain" data-sec="ex" style="--dc:var(--ex)">
+  <div class="dhead"><h2>ℹ️ How the exam works</h2></div>
+  <p class="dsub">Mechanics, scoring, scenarios — from the official Certification Exam Guide and candidate field reports.</p>
+
+  <details class="card" data-t="c" id="ex-1" style="--dc:var(--ex)">
+    <summary><div class="cardtitle"><span class="tag">Format</span>Structure, scoring &amp; logistics</div><button class="done-btn" aria-label="mark reviewed">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong>60 multiple-choice questions in 120 minutes</strong> — one correct answer + three distractors per question. No penalty for wrong answers: <strong>always answer</strong>; blanks score the same as wrong.</li>
+        <li>Scaled score <strong>100–1,000</strong>, passing threshold <strong>720</strong>. Pass/fail result.</li>
+        <li>~$99 per attempt. <strong>Online proctored, closed-book</strong>: webcam + screen-share monitoring, no Claude, no docs, no external tabs.</li>
+        <li>Distractors are designed for candidates with <em>incomplete</em> knowledge: plausible, often technically true — but not the «best» answer.</li>
+        <li>Target candidate: solution architect with 6+ months of hands-on practice with the Claude API, Agent SDK, Claude Code and MCP.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="ex-2" style="--dc:var(--ex)">
+    <summary><div class="cardtitle"><span class="tag">Scenarios</span>4 scenarios drawn at random from 6</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Every question sits inside a production scenario. You'll see <strong>4 of 6</strong> — prepare all of them (candidates report the live pool may be even larger, up to 13, unconfirmed):</p>
+      <table class="scen">
+        <tr><th>Scenario</th><th>Primary domains</th></tr>
+        <tr><td>1 · Customer Support Resolution Agent (SDK, MCP tools: <code>get_customer</code>, <code>lookup_order</code>, <code>process_refund</code>, <code>escalate_to_human</code>)</td><td>D1, D2, D5</td></tr>
+        <tr><td>2 · Code Generation with Claude Code (slash commands, CLAUDE.md, plan mode)</td><td>D3, D5</td></tr>
+        <tr><td>3 · Multi-Agent Research System (coordinator + web/analysis/synthesis/report subagents)</td><td>D1, D2, D5</td></tr>
+        <tr><td>4 · Developer Productivity (built-in tools Read/Write/Bash/Grep/Glob + MCP)</td><td>D2, D3, D1</td></tr>
+        <tr><td>5 · Claude Code for Continuous Integration (automated reviews, test generation, PR feedback)</td><td>D3, D4</td></tr>
+        <tr><td>6 · Structured Data Extraction (JSON schema, edge cases, validation)</td><td>D4, D5</td></tr>
+      </table>
+      <p>⚠️ The 60 practice questions only cover 4 scenarios — <strong>Developer Productivity</strong> and <strong>Structured Data Extraction</strong> may show up "fresh": review D2.5 (built-in tools) and D4.3/4.4 (schemas &amp; extraction) carefully.</p>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="ex-3" style="--dc:var(--ex)">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Reality check</span>You cannot memorize your way through</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>The practice exam is <strong>recognition-based</strong> («what is X?»); the live exam is <strong>judgment-based</strong> («your system is failing — which architecture fixes it?»). One documented candidate scored <strong>980/1000 on practice and 744/1000 live</strong> in the same week — a 236-point swing measuring the same knowledge.</p>
+      <blockquote>"The practice exam asks you to recognize a concept. The live exam drops you into a broken production system and asks you to repair it."</blockquote>
+      <ul>
+        <li>Treat a 900+ practice score as <strong>a floor to clear, not a forecast</strong> — the practice exam is calibrated easier.</li>
+        <li>Passers report <strong>almost no rote-recall questions</strong> (e.g. no <code>stop_reason</code> enumeration) — the exam tests <em>behavioral API judgment</em>: when a rolling context window helps, when the Batch API is the wrong tradeoff despite the discount, how statelessness forces the application layer to own continuity.</li>
+        <li>Study method: convert every concept into a <strong>production-failure → decision pair</strong>, not a definition.</li>
+      </ul>
+      <div class="refs"><span class="ref">field report</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="ex-4" style="--dc:var(--ex)">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Reality check</span>The 60/40 problem — and the hidden safety topic</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Candidate reports estimate only ~<strong>60% of live exam content maps to the official study guide and practice materials</strong>; the other ~40% draws on Anthropic Academy courseware and Cookbook notebooks that practice barely touches. The neglected clusters:</p>
+      <ul>
+        <li><strong>Structured output &amp; tool design</strong> (deeper than the practice set — see D4).</li>
+        <li><strong>Context management</strong> (see D5).</li>
+        <li><strong>Safety &amp; Responsible Deployment</strong> — <em>not even listed in the five published domains</em>. Key testable pattern: <strong>prompt injection</strong>. The fix is never a disclaimer or a stronger prompt: <strong>gate privileged actions in code and isolate untrusted input</strong> from privileged context.</li>
+      </ul>
+      <div class="refs"><span class="ref">field report</span><span class="ref">Golden Rule 1</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="ex-5" style="--dc:var(--ex)">
+    <summary><div class="cardtitle"><span class="tag">Self-test</span>90-second readiness diagnostic</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Six failure scenarios — if you can't name the fix instantly, that's your weak area:</p>
+      <ol>
+        <li><strong>Endless agent loop</strong> → exit on <code>stop_reason</code>, never iteration caps or output-text scanning. <em>(D1)</em></li>
+        <li><strong>Tool failures</strong> → return explicit, structured errors the model can act on — never empty results or fake success. <em>(D2)</em></li>
+        <li><strong>Configuration conflicts</strong> → deeper-scoped rules and higher-level rules <strong>combine and get interpreted together</strong> — they don't silently override each other. <em>(D3)</em></li>
+        <li><strong>Hallucinated extraction</strong> → the schema must allow <code>null</code> / explicit <code>"unclear"</code> values — never force the model to invent or omit. <em>(D4)</em></li>
+        <li><strong>Lost context</strong> → restructure so critical facts sit at context edges / in persistent blocks — never assume the API remembers. <em>(D5)</em></li>
+        <li><strong>Injection vulnerability</strong> → gate privileged actions in code; isolate untrusted input — never a disclaimer or prompt strengthening. <em>(Safety)</em></li>
+      </ol>
+      <div class="refs"><span class="ref">field report</span></div>
+    </div>
+  </details>
+</section>
+
+<!-- ══════════════ D1 ══════════════ -->
+<section class="domain" data-sec="d1" style="--dc:var(--d1)">
+  <div class="dhead"><h2>D1 — Agentic Architecture &amp; Orchestration</h2><span class="weight" style="background:var(--d1)">27%</span></div>
+  <p class="dsub">The heaviest domain (~16 of 60 questions) and the most "bankable" one: concrete vocabulary, learnable patterns. Agentic loop, coordinator/subagents, hooks, decomposition, sessions.</p>
+
+  <div class="grouplabel">Key concepts</div>
+
+  <details class="card" data-t="c" id="d1-c1">
+    <summary><div class="cardtitle"><span class="tag">Agentic loop</span><code>stop_reason</code> drives the loop</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>The loop is a while driven by the response's <code>stop_reason</code> field: <code>tool_use</code> → execute the requested tools, <strong>append the results to the conversation history</strong> and call the API again; <code>end_turn</code> → the turn is complete, stop. Also exists: <code>pause_turn</code> (server-side iteration limit for server tools, e.g. web search: re-send and the server resumes) and <code>refusal</code>.</p>
+      <p>Which tool to call next is a <strong>model-driven</strong> decision (the model reasons over context), not a pre-configured decision tree or fixed tool sequence.</p>
+      <div class="refs"><span class="ref">Q58</span><span class="ref">Task 1.1</span><span class="ref ver">✓ Messages API docs</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d1-c2">
+    <summary><div class="cardtitle"><span class="tag">Agentic loop</span>Termination anti-patterns</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Three mistakes the exam punishes:</p>
+      <ul>
+        <li><strong>Parsing the output text</strong> to decide if it's done («looks finished») — unreliable.</li>
+        <li><strong>Arbitrary iteration cap</strong> as the primary stopping mechanism (fine as a safety net, wrong as the logic) — it masks the symptom instead of fixing the loop.</li>
+        <li><strong>Checking for assistant text</strong> as a completion indicator.</li>
+      </ul>
+      <p>The only correct signal is <code>stop_reason</code>.</p>
+      <div class="refs"><span class="ref">Task 1.1</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d1-c3">
+    <summary><div class="cardtitle"><span class="tag">Multi-agent</span>Coordinator as the central hub</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Hub-and-spoke topology: the coordinator observes all interactions, handles errors uniformly, and decides what information each subagent receives. <strong>Subagents never talk to each other directly.</strong> The coordinator owns: decomposition, delegation, aggregation, and it <em>dynamically</em> selects which subagents to invoke based on query complexity (not always the full pipeline).</p>
+      <p>Iterative refinement: the coordinator evaluates the synthesis output for gaps, re-delegates targeted queries, and re-invokes synthesis until coverage is sufficient.</p>
+      <div class="refs"><span class="ref">Q2</span><span class="ref">Q8</span><span class="ref">Task 1.2</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d1-c4">
+    <summary><div class="cardtitle"><span class="tag">Subagents</span>Isolated context — pass it explicitly, and only what's needed</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p><strong>«A subagent inherits nothing. It is a fresh context.»</strong> Subagents don't get the coordinator's conversation history and don't share memory between invocations. All relevant context (e.g. web-search results + document analysis for the synthesis agent) must be included <strong>in the subagent's prompt</strong>, in a structured format that separates content from metadata (URLs, document names, page numbers) to preserve attribution.</p>
+      <p>But scoping cuts both ways: each subagent should receive a <strong>tight, purpose-built prompt plus least-privilege tools</strong> — sharing the <em>full</em> conversation history creates privacy, cost and quality problems (see the trap below).</p>
+      <div class="refs"><span class="ref">Task 1.3</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d1-c5">
+    <summary><div class="cardtitle"><span class="tag">Subagents</span><code>Task</code> tool, <code>allowedTools</code>, parallel spawning</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li>Subagents are spawned via the <strong><code>Task</code></strong> tool; the coordinator can only invoke them if its <code>allowedTools</code> includes <code>"Task"</code>.</li>
+        <li>Each subagent type is defined by an <strong>AgentDefinition</strong>: description, system prompt, tool restrictions.</li>
+        <li><strong>Parallel = multiple Task calls in the same coordinator response</strong>; separate turns = sequential.</li>
+        <li>Coordinator prompts should specify <strong>research goals and quality criteria</strong>, not step-by-step procedures — leave subagents room to adapt.</li>
+      </ul>
+      <div class="refs"><span class="ref">Task 1.3</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d1-c6">
+    <summary><div class="cardtitle"><span class="tag">State</span>Moving state between agents: three mechanisms</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>State transfer is always deliberate. Match the mechanism to the data:</p>
+      <ul>
+        <li><strong>Small inputs</strong> → a structured message inside the spawning prompt.</li>
+        <li><strong>Large artifacts</strong> → shared files (avoids prompt bloat).</li>
+        <li><strong>Findings</strong> → machine-readable JSON in tool-call results.</li>
+      </ul>
+      <div class="refs"><span class="ref">field report</span><span class="ref">Task 1.3</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d1-c7">
+    <summary><div class="cardtitle"><span class="tag">API</span>The Claude API is stateless</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>«Each call is independent, and the model retains nothing between calls.» This single fact explains several exam answers:</p>
+      <ul>
+        <li>The <strong>full message history must be re-sent</strong> on every request for conversational coherence.</li>
+        <li>Subagents need <strong>explicit context passing</strong> — there is nothing to inherit.</li>
+        <li><strong>The application layer owns continuity</strong>: session storage, summaries, case-facts blocks — never «the API remembers».</li>
+      </ul>
+      <div class="refs"><span class="ref">Task 5.1</span><span class="ref">field report</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d1-c8">
+    <summary><div class="cardtitle"><span class="tag">Enforcement</span>Hooks: deterministic guarantees</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Two Agent SDK hook patterns:</p>
+      <ul>
+        <li><strong>Intercept the outgoing tool call</strong> to block policy-violating actions (e.g. refund &gt; $500 → block and redirect to human escalation). A $500 limit belongs in a <strong>PreToolUse hook, not the system prompt</strong>: «the model cannot talk its way around a hook, because the hook runs in your code, not in the model's reasoning.»</li>
+        <li><strong>PostToolUse</strong>: intercept results and transform them before the model processes them (e.g. normalize Unix vs ISO 8601 timestamps, numeric vs string codes from third-party MCP tools).</li>
+      </ul>
+      <p>Rule: hooks for «must» (guaranteed compliance), prompts for «should» (probabilistic).</p>
+      <div class="refs"><span class="ref">Q59</span><span class="ref">Task 1.5</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d1-c9">
+    <summary><div class="cardtitle"><span class="tag">Decomposition</span>Prompt chaining vs dynamic decomposition</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong>Prompt chaining</strong> (fixed sequential pipeline) for predictable multi-aspect workflows — e.g. review: analyze each file individually, then a cross-file integration pass.</li>
+        <li><strong>Dynamic/adaptive decomposition</strong> for open-ended investigations — e.g. «add tests to a legacy codebase»: first map the structure, identify high-impact areas, then a prioritized plan that adapts as dependencies are discovered.</li>
+      </ul>
+      <div class="refs"><span class="ref">Task 1.6</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d1-c10">
+    <summary><div class="cardtitle"><span class="tag">Sessions</span><code>--resume</code>, <code>fork_session</code>, stale context</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><code>--resume &lt;name&gt;</code> resumes a named session to continue an investigation across work sessions.</li>
+        <li><code>fork_session</code> creates <strong>independent branches from a shared baseline</strong> — e.g. compare two refactoring strategies from the same codebase analysis.</li>
+        <li>If the old session's tool results are <strong>stale</strong> (the code changed a lot), <strong>starting a fresh session with a structured summary</strong> is more reliable than resuming.</li>
+        <li>Resuming after limited changes? <strong>Tell the session which files changed</strong> for targeted re-analysis instead of full re-exploration.</li>
+      </ul>
+      <div class="refs"><span class="ref">Task 1.7</span></div>
+    </div>
+  </details>
+
+  <div class="grouplabel">Exam traps</div>
+
+  <details class="card" data-t="trap" id="d1-t1">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Partial coverage? Blame the decomposition</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>If the final result covers only part of the requested domain (only visual arts instead of music+writing+film) and <strong>every subagent executed its own piece correctly</strong>, the root cause is the coordinator's overly narrow task decomposition — not the subagents, not the search queries, not the relevance filters.</p>
+      <div class="refs"><span class="ref">Q4</span><span class="ref">Sample Q7</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d1-t2">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>The coordinator that shared too much</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Watch for scenarios where the coordinator passes the <strong>full conversation history</strong> (or full customer records) to every subagent: the symptoms are <strong>data leaks into outputs, token-cost explosions, or subagents returning unfocused answers</strong>. The fix is <strong>re-scoping the decomposition</strong> — each subagent gets only the context its task needs — not «strengthening» the subagents' prompts.</p>
+      <div class="refs"><span class="ref">field report</span><span class="ref">Task 1.3</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d1-t3">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Explicit partitioning, not post-hoc dedup</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>To stop two agents from investigating the same things (double tokens, zero coverage gain), the coordinator must <strong>explicitly partition the research space before delegating</strong> (distinct subtopics or source types) — not let them run in parallel and deduplicate afterwards.</p>
+      <div class="refs"><span class="ref">Q11</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d1-t4">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Errors: local recovery, escalation with context</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Handle the error <strong>at the lowest level that can resolve it</strong>: the subagent retries locally <strong>once or twice</strong> for transient failures; it escalates to the coordinator only what it cannot resolve, with <strong>complete structured context</strong>: failure type, attempted query, partial results, alternatives tried. Never: a generic status («search unavailable»), an error disguised as success (empty result set marked ok), an exception that kills the whole workflow.</p>
+      <p>SDK detail: return <code>"is_error": true</code> in the tool result to <strong>keep the loop alive</strong> — an uncaught exception kills the entire query call.</p>
+      <div class="refs"><span class="ref">Q3</span><span class="ref">Q6</span><span class="ref">Q9</span><span class="ref">Sample Q8</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d1-t5">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>«0 results» ≠ timeout</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>«0 results» is a <strong>valid outcome</strong>: the query succeeded, nothing matched. A timeout/access failure instead requires a retry decision. Confusing the two leads to pointless retries or — worse — discarding a legitimate result.</p>
+      <div class="refs"><span class="ref">Q12</span><span class="ref">Task 2.2</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d1-t6">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Multi-issue request → decompose and parallelize</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>«Billed twice + discount didn't apply + I want to cancel»: if the agent investigates sequentially, re-fetching customer data per issue (12+ tool calls, 54% success), the fix is to <strong>decompose the request into distinct issues and investigate them in parallel with shared customer context</strong>, then synthesize one resolution. Not: verification checkpoints, one mega-tool, few-shot examples of ideal sequences.</p>
+      <div class="refs"><span class="ref">Q48</span><span class="ref">Task 1.4</span></div>
+    </div>
+  </details>
+</section>
+
+<!-- ══════════════ D2 ══════════════ -->
+<section class="domain" data-sec="d2" style="--dc:var(--d2)">
+  <div class="dhead"><h2>D2 — Tool Design &amp; MCP Integration</h2><span class="weight" style="background:var(--d2)">18%</span></div>
+  <p class="dsub">Descriptions, structured errors, tool distribution, tool_choice, MCP, built-in tools.</p>
+
+  <div class="grouplabel">Key concepts</div>
+
+  <details class="card" data-t="c" id="d2-c1">
+    <summary><div class="cardtitle"><span class="tag">Tool design</span>The description is the primary routing mechanism</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Not the name, not the system prompt: the model selects tools based on the <strong>description</strong>. A good description includes: accepted input formats, example queries, edge cases, and explicit boundaries («use for X, not for Y — for Y use tool Z»).</p>
+      <p>If a generic tool keeps being misused, also consider <strong>splitting it into purpose-specific tools</strong>: <code>analyze_document</code> → <code>extract_data_points</code>, <code>summarize_content</code>, <code>verify_claim_against_source</code>.</p>
+      <div class="refs"><span class="ref">Q46</span><span class="ref">Q57</span><span class="ref">Q60</span><span class="ref">Task 2.1</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d2-c2">
+    <summary><div class="cardtitle"><span class="tag">MCP errors</span>Structured errors: category + retryability</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>An MCP tool communicates failures with the <code>isError</code> flag and <strong>structured metadata</strong>:</p>
+      <ul>
+        <li><code>errorCategory</code>: <strong>transient</strong> (timeout, service down) / <strong>validation</strong> (invalid input) / <strong>business</strong> (policy violation) / <strong>permission</strong>.</li>
+        <li><code>isRetryable</code>: prevents wasted retries on unrecoverable errors.</li>
+        <li>Human-readable description; for business errors also a <em>customer-friendly</em> explanation with <code>retriable: false</code>.</li>
+      </ul>
+      <p>A generic «Operation failed» blocks any intelligent recovery decision by the agent.</p>
+      <div class="refs"><span class="ref">Task 2.2</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d2-c3">
+    <summary><div class="cardtitle"><span class="tag">Distribution</span>Few tools, the right ones: 4-5 per role, not 18</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Too many tools degrade selection reliability (more decision complexity). An agent holding tools outside its specialization tends to misuse them (a synthesis agent doing web searches). Rules:</p>
+      <ul>
+        <li>Each subagent gets <strong>only its role's tools</strong>.</li>
+        <li>For high-frequency cross-role needs: a <strong>scoped, limited tool</strong> (e.g. <code>verify_fact</code> for the synthesis agent → handles the 85% of simple fact-checks; the complex 15% stays with the coordinator).</li>
+        <li>Replace generic tools with constrained alternatives: <code>fetch_url</code> → <code>load_document</code> that validates formats at the interface level.</li>
+      </ul>
+      <div class="refs"><span class="ref">Q10</span><span class="ref">Q15</span><span class="ref">Task 2.3</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d2-c4">
+    <summary><div class="cardtitle"><span class="tag">API</span><code>tool_choice</code>: auto / any / forced</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><code>"auto"</code> (default): the model may call a tool <em>or answer with text</em>.</li>
+        <li><code>"any"</code>: it <strong>must</strong> call a tool (its choice which) — guarantees structured output when multiple extraction schemas exist and the document type is unknown.</li>
+        <li><code>{"type": "tool", "name": "..."}</code> (forced): calls <strong>that</strong> tool — e.g. force <code>extract_metadata</code> before enrichment steps, which continue in follow-up turns.</li>
+      </ul>
+      <div class="refs"><span class="ref">Task 2.3</span><span class="ref">Task 4.3</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d2-c5">
+    <summary><div class="cardtitle"><span class="tag">MCP</span>Config scoping and credentials</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong>Project <code>.mcp.json</code></strong> = team tooling, version-controlled, single source of truth. Credentials via <strong>environment variable expansion</strong> (<code>${GITHUB_TOKEN}</code>): the file gets committed, the secrets don't.</li>
+        <li><strong>User-level <code>~/.claude.json</code></strong> = personal/experimental servers.</li>
+        <li>Tools from <strong>all</strong> configured servers are discovered at connection time and available simultaneously.</li>
+        <li>Prefer <strong>community MCP servers</strong> for standard integrations (Jira); custom servers only for team-specific workflows.</li>
+      </ul>
+      <div class="refs"><span class="ref">Q44</span><span class="ref">Task 2.4</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d2-c6">
+    <summary><div class="cardtitle"><span class="tag">MCP</span>Resources and «competitive» descriptions</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong>MCP resources</strong> expose content catalogs (DB schemas, documentation hierarchies, issue summaries) giving the agent visibility <em>without</em> exploratory tool calls.</li>
+        <li>If the agent prefers built-in tools (Grep) over more capable MCP tools, the cause is a <strong>poor MCP description</strong>: enrich it with detailed capabilities and outputs.</li>
+      </ul>
+      <div class="refs"><span class="ref">Task 2.4</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d2-c7">
+    <summary><div class="cardtitle"><span class="tag">Built-in tools</span>Grep vs Glob vs Read/Write vs Edit</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong>Grep</strong> = search <em>file contents</em> (function names, error messages, imports).</li>
+        <li><strong>Glob</strong> = find files <em>by path/name pattern</em> (<code>**/*.test.tsx</code>).</li>
+        <li><strong>Read/Write</strong> = whole-file operations; <strong>Edit</strong> = targeted change with a <em>unique</em> text match. If Edit fails on a non-unique match → fallback <strong>Read + Write</strong>.</li>
+        <li>Incremental exploration: Grep to find entry points → Read to follow imports and trace flows. <strong>Don't read every file upfront.</strong> To trace usage through wrapper modules: first list all exported names, then search each name across the codebase.</li>
+      </ul>
+      <div class="refs"><span class="ref">Task 2.5</span></div>
+    </div>
+  </details>
+
+  <div class="grouplabel">Exam traps</div>
+
+  <details class="card" data-t="trap" id="d2-t1">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Wrong tool picked? Fix the description first, not few-shot</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>When an agent picks the wrong tool, the temptation is to add few-shot examples to the prompt. But if the cause is an ambiguous/minimal description, the correct fix (and the highest-leverage «first step») is <strong>the tool description</strong>. Few-shot is the second tier. Routing layers, classifiers, and tool consolidation are over-engineering distractors for a «first step».</p>
+      <div class="refs"><span class="ref">Q46</span><span class="ref">Q57</span><span class="ref">Q60</span><span class="ref">Sample Q2</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d2-t2">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Semantic overlap → rename, don't just expand</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Fine distinction: if descriptions are <strong>minimal</strong> → expand them (Q57). If two tools have <strong>near-identical names+descriptions</strong> (<code>analyze_content</code> vs <code>analyze_document</code>, «analyzes content/documents and extracts key information»), the right answer is to <strong>rename</strong> the ambiguous tool (<code>extract_web_results</code>) and rewrite its description specifically — it removes the overlap at the root.</p>
+      <div class="refs"><span class="ref">Q7</span><span class="ref">Task 2.1</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d2-t3">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Keyword-driven routing? Check the system prompt</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>If behavior varies <em>systematically</em> with one word («account» in the message → 78% <code>get_customer</code>; without → 93% <code>lookup_order</code>) and the descriptions are already clear, the root cause is a <strong>keyword-sensitive instruction in the system prompt</strong> creating unintended associations — not the model's training, not missing negative examples.</p>
+      <div class="refs"><span class="ref">Q56</span><span class="ref">Task 2.1</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d2-t4">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Heterogeneous formats → PostToolUse hook</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Different tools (especially unmodifiable third-party MCP) returning different formats (Unix vs ISO 8601 timestamps, numeric vs string codes)? A <strong>PostToolUse hook normalizes deterministically</strong> before the model interprets the data — more reliable than documenting the formats in the prompt.</p>
+      <div class="refs"><span class="ref">Q59</span><span class="ref">Task 1.5</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d2-t5">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Sequential tool calls → prompt for bundling</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>If the agent calls <code>get_customer</code> and <code>lookup_order</code> in separate turns even when both are needed (4+ loops per resolution), the simplest fix is to <strong>instruct it in the prompt to bundle tool requests into a single turn</strong> — it leverages the native ability to request multiple tools at once. Distractors: speculative execution, raising <code>max_tokens</code>, composite tools (valid but more invasive).</p>
+      <div class="refs"><span class="ref">Q53</span></div>
+    </div>
+  </details>
+</section>
+
+<!-- ══════════════ D3 ══════════════ -->
+<section class="domain" data-sec="d3" style="--dc:var(--d3)">
+  <div class="dhead"><h2>D3 — Claude Code Configuration &amp; Workflows</h2><span class="weight" style="background:var(--d3)">20%</span></div>
+  <p class="dsub">CLAUDE.md, rules, skills, slash commands, plan mode, iterative refinement, CI/CD.</p>
+
+  <div class="grouplabel">Key concepts</div>
+
+  <details class="card" data-t="c" id="d3-c1">
+    <summary><div class="cardtitle"><span class="tag">Config</span>CLAUDE.md hierarchy + @import + /memory</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li>Three levels: <strong>user</strong> (<code>~/.claude/CLAUDE.md</code>, personal, NOT shared via git), <strong>project</strong> (<code>.claude/CLAUDE.md</code> or root, version-controlled = the team's source of truth), <strong>directory</strong> (CLAUDE.md in subfolders).</li>
+        <li>Levels <strong>combine and get interpreted together</strong> — deeper-scoped rules don't silently override higher-level ones; conflicts must be resolved by editing, not assumed away.</li>
+        <li><strong><code>@import</code></strong> references external files to keep CLAUDE.md modular — each package imports only the standards it needs.</li>
+        <li><strong><code>/memory</code></strong> shows which memory files are loaded — the diagnostic command when behavior is inconsistent across sessions.</li>
+      </ul>
+      <div class="refs"><span class="ref">Q37</span><span class="ref">Task 3.1</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d3-c2">
+    <summary><div class="cardtitle"><span class="tag">Config</span>CLAUDE.md vs Skills vs .claude/rules/</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong>CLAUDE.md</strong> = always in memory in every session → only universal standards (coding style, testing).</li>
+        <li><strong>Skills</strong> = loaded on-demand when Claude recognizes a trigger in the description → workflow-specific guidance (PR review, deploy, migration).</li>
+        <li><strong><code>.claude/rules/</code></strong> = files with YAML frontmatter and a <code>paths</code> glob field → activate only for matching file paths. Better than directory-level CLAUDE.md when the convention applies to files <em>scattered</em> across the codebase (e.g. <code>**/*.test.tsx</code>).</li>
+      </ul>
+      <div class="refs"><span class="ref">Q33</span><span class="ref">Q38</span><span class="ref">Q40</span><span class="ref">Q42</span><span class="ref">Sample Q6</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d3-c3">
+    <summary><div class="cardtitle"><span class="tag">Skills</span>Frontmatter: fork, allowed-tools, argument-hint</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong><code>context: fork</code></strong>: the skill runs as an isolated subagent with its own context window — verbose output (scanning hundreds of files) doesn't pollute the main conversation, which only receives a summary. The skill becomes the subagent's prompt and does <em>not</em> see the main history. Combine with <code>agent: Explore</code> / <code>agent: Plan</code>.</li>
+        <li><strong><code>allowed-tools</code></strong>: restricts tools during execution (prevents destructive actions).</li>
+        <li><strong><code>argument-hint</code></strong>: enforces required parameters when the skill is invoked without arguments.</li>
+        <li>Three different problems = three distinct frontmatter fixes, combinable in the same file.</li>
+      </ul>
+      <div class="refs"><span class="ref">Q35</span><span class="ref">Q39</span><span class="ref">Q43</span><span class="ref">Q45</span><span class="ref ver">✓ code.claude.com/docs</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d3-c4">
+    <summary><div class="cardtitle"><span class="tag">Skills</span>Precedence and sharing</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li>A <strong>personal</strong> skill (<code>~/.claude/skills/commit/</code>) with the same name <strong>overrides</strong> the project one — individual customization without touching the team's workflow.</li>
+        <li>Team slash commands → <strong><code>.claude/commands/</code> in the repository</strong> (version-controlled, available on every clone/pull); <code>~/.claude/commands/</code> is personal.</li>
+      </ul>
+      <div class="refs"><span class="ref">Q36</span><span class="ref">Q41</span><span class="ref">Sample Q4</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d3-c5">
+    <summary><div class="cardtitle"><span class="tag">Workflow</span>Plan mode vs direct execution</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong>Plan mode</strong>: large-scale changes, multiple valid approaches, architectural decisions, multi-file work (monolith→microservices, a library migration across 45+ files, choosing webhook/bot/App). Explore and design <em>before</em> touching code — prevents costly rework.</li>
+        <li><strong>Direct execution</strong>: well-scoped, clear changes (a single-file bug fix with a stack trace, adding a validation).</li>
+        <li>Combine them: plan to investigate, direct to implement the plan. The <strong>Explore</strong> subagent isolates verbose discovery and returns summaries.</li>
+      </ul>
+      <div class="refs"><span class="ref">Q32</span><span class="ref">Q34</span><span class="ref">Sample Q5</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d3-c6">
+    <summary><div class="cardtitle"><span class="tag">Refinement</span>Iteration: examples, test-driven, interview</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong>2-3 concrete input→output examples</strong> when prose descriptions get interpreted inconsistently.</li>
+        <li><strong>Test-driven iteration</strong>: write the test suite first (expected behavior, edge cases, performance), then iterate by sharing test failures.</li>
+        <li><strong>Interview pattern</strong>: have Claude ask questions before implementing, to surface considerations you didn't anticipate (cache invalidation, failure modes) in unfamiliar domains.</li>
+        <li><strong>Interacting</strong> problems → all in one detailed message; <strong>independent</strong> problems → sequential fixes.</li>
+      </ul>
+      <div class="refs"><span class="ref">Q31</span><span class="ref">Task 3.5</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d3-c7">
+    <summary><div class="cardtitle"><span class="tag">CI/CD</span>Headless, structured output, context</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong><code>claude -p "..."</code></strong> (<code>--print</code>) = non-interactive mode: prints and exits. <code>--batch</code> and <code>CLAUDE_HEADLESS</code> <em>do not exist</em>.</li>
+        <li><strong><code>--output-format json</code> + <code>--json-schema</code></strong> for machine-parseable findings (e.g. inline PR comments) — CLI-level enforcement, not a «parseable format» requested in the prompt.</li>
+        <li><strong>CLAUDE.md is the context channel for CI</strong>: testing standards, review criteria, available fixtures — improves generated-test quality and reduces low-value output.</li>
+      </ul>
+      <div class="refs"><span class="ref">Q16</span><span class="ref">Q26</span><span class="ref">Sample Q10</span><span class="ref ver">✓ Structured outputs</span></div>
+    </div>
+  </details>
+
+  <div class="grouplabel">Exam traps</div>
+
+  <details class="card" data-t="trap" id="d3-t1">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Rule followed only by some? It's user-level</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>If only some developers follow a rule and new team members don't, the most likely cause is that it lives in the author's personal <code>~/.claude/CLAUDE.md</code> instead of the project's <code>.claude/CLAUDE.md</code>. Fix: move it to project level (version-controlled, shared).</p>
+      <div class="refs"><span class="ref">Q37</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d3-t2">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Duplicate test suggestions? Missing context</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>If 6 of 10 suggested tests duplicate scenarios already covered by the existing suite, the root cause is that <strong>Claude doesn't know which tests exist</strong>. Fix: <strong>include the existing test file in context</strong>. Distractors: asking for fewer suggestions, «focus on edge cases», keyword-based post-filtering.</p>
+      <div class="refs"><span class="ref">Q24</span><span class="ref">Task 3.6</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d3-t3">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Duplicate review comments after new commits</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Re-running review after fixes → comments duplicating findings already addressed. Fix: <strong>include the previous findings in context</strong> and instruct Claude to report only <em>new or still-unresolved</em> issues. Post-processing by file-path/description matching is the distractor (fragile); skipping intermediate commits or narrowing scope reduces thoroughness.</p>
+      <div class="refs"><span class="ref">Q25</span><span class="ref">Task 3.6</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d3-t4">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Ambiguous/architectural task → plan mode from the start</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>If the complexity is already stated in the requirements (dozens of files, service boundaries, multiple valid approaches), the answer is <strong>enter plan mode from the start</strong> — not «direct execution, switch to plan if I hit complexity» (the complexity is already known), not hyper-detailed upfront instructions (they presume you already know the right structure).</p>
+      <div class="refs"><span class="ref">Q32</span><span class="ref">Q34</span><span class="ref">Sample Q5</span></div>
+    </div>
+  </details>
+</section>
+
+<!-- ══════════════ D4 ══════════════ -->
+<section class="domain" data-sec="d4" style="--dc:var(--d4)">
+  <div class="dhead"><h2>D4 — Prompt Engineering &amp; Structured Output</h2><span class="weight" style="background:var(--d4)">20%</span></div>
+  <p class="dsub">Explicit criteria, few-shot, JSON schema via tool use, validation &amp; retry, batch, multi-instance review.</p>
+
+  <div class="grouplabel">Key concepts</div>
+
+  <details class="card" data-t="c" id="d4-c1">
+    <summary><div class="cardtitle"><span class="tag">Precision</span>Explicit criteria &gt; vague instructions</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>«Check that comments are accurate» → inconsistent results. «Flag a comment only if the claimed behavior <strong>contradicts</strong> the actual code behavior» → a verifiable criterion. Define <em>what</em> to report (bugs, security) and <em>what</em> to skip (minor style) with concrete examples per severity level.</p>
+      <p>⚠️ «Be conservative» / «only high-confidence findings» do <strong>not</strong> improve precision — they're the classic distractors.</p>
+      <div class="refs"><span class="ref">Q22</span><span class="ref">Task 4.1</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d4-c2">
+    <summary><div class="cardtitle"><span class="tag">Few-shot</span>When few-shot is the right answer</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>2-4 targeted examples <strong>showing the why</strong> of one choice over plausible alternatives. They work for:</p>
+      <ul>
+        <li>Consistent output format (location, issue, severity, suggested fix).</li>
+        <li>Handling ambiguous cases (tool selection, escalation criteria) — they generalize to novel patterns.</li>
+        <li>Reducing extraction hallucinations (informal measurements, varied document structures, empty/null fields).</li>
+      </ul>
+      <p>They're a <strong>distractor</strong> when the problem is structural: an ambiguous description, information missing from context, a constraint that must be programmatic.</p>
+      <div class="refs"><span class="ref">Q20</span><span class="ref">Q47</span><span class="ref">Q49</span><span class="ref">Task 4.2</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d4-c3">
+    <summary><div class="cardtitle"><span class="tag">Structured output</span>Tool use + JSON schema = guaranteed syntax</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Defining an extraction tool with the JSON schema as its input and extracting data from the <code>tool_use</code> block is <strong>the most reliable approach</strong> to schema-compliant output: it eliminates JSON <em>syntax</em> errors. <strong>It does not eliminate semantic errors</strong>: line items that don't sum to the total, values in the wrong field — those need downstream validation.</p>
+      <p>Multiple possible schemas and unknown document type → <code>tool_choice: "any"</code>. To guarantee one specific extraction before other steps → forced <code>{"type":"tool","name":"extract_metadata"}</code>.</p>
+      <div class="refs"><span class="ref">Task 4.3</span><span class="ref ver">✓ Structured outputs</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d4-c4">
+    <summary><div class="cardtitle"><span class="tag">Structured output</span>Anti-fabrication schema design</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong>Optional</strong> fields when the document may not contain the information — a <code>required</code> field pushes the model to <strong>fabricate values</strong> just to satisfy the schema. The schema must allow <code>null</code> / explicit absence, never force invention or silent omission.</li>
+        <li>Enums with <code>"unclear"</code> for ambiguous cases and <code>"other"</code> + a detail string for extensible categories.</li>
+        <li><strong>Format-normalization rules in the prompt</strong> alongside the schema (inconsistently formatted sources).</li>
+      </ul>
+      <div class="refs"><span class="ref">Task 4.3</span><span class="ref">field report</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d4-c5">
+    <summary><div class="cardtitle"><span class="tag">Validation</span>Retry with error feedback — and its limits</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>On failed validation: a follow-up request with <strong>original document + failed extraction + specific errors</strong> → the model self-corrects. Works for format/structure errors.</p>
+      <p><strong>Retry is useless when the information isn't in the source</strong> (e.g. it lives in an external document that wasn't provided) — recognizing this case is tested.</p>
+      <p>Self-validation patterns: extract <code>calculated_total</code> alongside <code>stated_total</code> to flag discrepancies; a <code>conflict_detected</code> boolean; a <code>detected_pattern</code> field on findings to analyze recurring false positives.</p>
+      <div class="refs"><span class="ref">Task 4.4</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d4-c6">
+    <summary><div class="cardtitle"><span class="tag">Batch</span>Message Batches API: when and how</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong>50% cost savings, up to 24h, no latency SLA</strong> → good for latency-tolerant workloads (overnight reports, weekly audits, nightly test generation); <strong>never for blocking workflows</strong> (pre-merge checks).</li>
+        <li><strong>No multi-turn tool use</strong> inside a request: it cannot execute a tool mid-request and let Claude continue.</li>
+        <li><code>custom_id</code> correlates requests and responses (results come back unordered).</li>
+        <li>Submission frequency computed from SLAs: 4-hour windows to guarantee a 30-hour SLA with 24-hour processing.</li>
+        <li>Failures: <strong>resubmit only the failed items</strong> (identified via <code>custom_id</code>) with fixes (e.g. chunking documents over the context limit). Refine the prompt <strong>on a sample</strong> before full volume.</li>
+      </ul>
+      <div class="refs"><span class="ref">Q18</span><span class="ref">Q19</span><span class="ref">Q21</span><span class="ref">Q30</span><span class="ref">Sample Q11</span><span class="ref">Task 4.5</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d4-c7">
+    <summary><div class="cardtitle"><span class="tag">Review</span>Multi-instance and multi-pass</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li><strong>Self-review is weak by construction</strong>: the model keeps its generation reasoning and won't question its own decisions. An <strong>independent instance without that context</strong> («fresh eyes») beats both self-review instructions and extended thinking.</li>
+        <li><strong>Multi-pass</strong>: per-file for local issues + an integration pass for cross-file flows — against attention dilution (uneven feedback, obvious bugs missed, contradictory judgments on the same pattern).</li>
+        <li>Self-reported confidence <strong>alongside each finding</strong> for calibrated review routing.</li>
+      </ul>
+      <div class="refs"><span class="ref">Q17</span><span class="ref">Q27</span><span class="ref">Sample Q12</span><span class="ref">Task 4.6</span></div>
+    </div>
+  </details>
+
+  <div class="grouplabel">Exam traps</div>
+
+  <details class="card" data-t="trap" id="d4-t1">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Requirements misread → examples, not more prose</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>When prose requirements get interpreted differently on every iteration (transformations with ambiguous nesting/format), <strong>2-3 concrete input→output examples</strong> remove the ambiguity better than more detailed instructions or the JSON schema alone.</p>
+      <div class="refs"><span class="ref">Q31</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d4-t2">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Trust eroded by false positives → disable noisy categories</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>FP rate by category: security 8%, performance 18%, <strong>style 52%, docs 48%</strong> → developers dismiss everything unread. Fix: <strong>temporarily disable the noisy categories</strong>, keep the precise ones, improve the prompts, then re-enable. Distractors: visible confidence scores (doesn't stop the erosion), few-shot «over the next few weeks» (too slow), uniform strictness reduction (punishes the good categories too).</p>
+      <div class="refs"><span class="ref">Q29</span><span class="ref">Task 4.1</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d4-t3">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>High triage time → rationale+confidence inside the finding</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>If the bottleneck is the time to <em>investigate</em> each finding (clicking in to read the rationale) and the constraint is «no filtering before developers see them», the answer is <strong>include rationale and confidence directly in every finding</strong> — fast triage, all findings stay visible. The distractors violate the constraint (auto-suppression, high-confidence filtering).</p>
+      <div class="refs"><span class="ref">Q28</span><span class="ref">Task 5.5</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d4-t4">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Incomplete explanations → self-critique stage</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Correct solutions but <em>inconsistent</em> explanations (sometimes the policy is missing, sometimes the timeline — gaps vary case by case): add a <strong>self-critique (evaluator-optimizer) stage</strong> where the agent evaluates the draft against concrete criteria (resolves the issue? includes context? anticipates follow-ups?) before presenting it. Few-shot only covers the 5 cases shown; the gap varies per case.</p>
+      <div class="refs"><span class="ref">Q52</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d4-t5">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Inconsistent review on big PRs → not a bigger model</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>14 files in one pass → attention dilution (uneven depth, contradictions). Fix: <strong>per-file passes + an integration pass</strong>. «Bigger context window» is the distractor: the window doesn't fix <em>attention quality</em>. 2-of-3 voting suppresses intermittently-caught real bugs; splitting PRs offloads the problem onto developers.</p>
+      <div class="refs"><span class="ref">Q27</span><span class="ref">Sample Q12</span></div>
+    </div>
+  </details>
+</section>
+
+<!-- ══════════════ D5 ══════════════ -->
+<section class="domain" data-sec="d5" style="--dc:var(--d5)">
+  <div class="dhead"><h2>D5 — Context Management &amp; Reliability</h2><span class="weight" style="background:var(--d5)">15%</span></div>
+  <p class="dsub">Long context, escalation, error propagation, codebase exploration, review calibration, provenance, safety.</p>
+
+  <div class="grouplabel">Key concepts</div>
+
+  <details class="card" data-t="c" id="d5-c1">
+    <summary><div class="cardtitle"><span class="tag">Context</span>Lost in the middle</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>With long inputs (~75K tokens) the model reliably cites the beginning and the end but loses information in the middle. Fix: put a <strong>key-findings summary at the start</strong> of the aggregated input + <strong>explicit section headers</strong> to navigate the middle. General principle: restructure so <strong>critical facts sit at the context edges</strong> (or in persistent blocks) — never assume the API remembers.</p>
+      <div class="refs"><span class="ref">Q13</span><span class="ref">Task 5.1</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d5-c2">
+    <summary><div class="cardtitle"><span class="tag">Context</span>Reduce tokens at the source + trim tool results</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li>Aggregated input over budget (155K vs 50K)? Modify the <strong>upstream agents</strong> to return structured data (key facts, quotes, relevance scores) instead of prose and full reasoning chains — not just a downstream summarizer.</li>
+        <li>Tool results consume tokens disproportionate to their relevance (40+ fields per lookup when 5 matter): <strong>trim to the relevant fields</strong> before they accumulate in context.</li>
+        <li>Require subagents to output structured data <strong>with metadata</strong> (dates, source locations, methodological context) for accurate synthesis.</li>
+      </ul>
+      <div class="refs"><span class="ref">Q14</span><span class="ref">Task 5.1</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d5-c3">
+    <summary><div class="cardtitle"><span class="tag">Context</span>Transactional facts outside the summary</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Progressive summarization condenses amounts, dates, percentages into vagueness («promotional pricing was discussed»). Fix: extract transactional facts (amounts, dates, order numbers, statuses) into a persistent <strong>«case facts» block included in every prompt, outside the summarized history</strong>. Revising the summarization prompt («preserve all numbers») stays probabilistic — the structured block is the guarantee.</p>
+      <div class="refs"><span class="ref">Q54</span><span class="ref">Task 5.1</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d5-c4">
+    <summary><div class="cardtitle"><span class="tag">Escalation</span>The right triggers, and the unreliable proxies</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p><strong>Correct</strong> escalation triggers:</p>
+      <ul>
+        <li><strong>Explicit request for a human</strong> → escalate <em>immediately</em>, without attempting investigation first (if the issue is trivial you may <em>offer</em> to resolve while acknowledging frustration — but if the customer reiterates, escalate).</li>
+        <li><strong>Policy gap or exception</strong>: the policy doesn't cover the case → don't invent policy, escalate for interpretation.</li>
+        <li>Inability to make meaningful progress.</li>
+      </ul>
+      <p><strong>Unreliable</strong> proxies (recurring distractors): sentiment analysis (frustration doesn't correlate with complexity), self-reported confidence (poorly calibrated — the agent is already overconfident on hard cases), «complex case» per se.</p>
+      <p>Escalation badly calibrated (55% vs 80% FCR)? First move: <strong>explicit criteria in the system prompt + escalate/resolve few-shot</strong> — not external classifiers.</p>
+      <div class="refs"><span class="ref">Q50</span><span class="ref">Sample Q3</span><span class="ref">Task 5.2</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d5-c5">
+    <summary><div class="cardtitle"><span class="tag">Escalation</span>Structured handoff to humans</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Whoever receives the escalation doesn't have the transcript: the agent compiles a <strong>structured handoff</strong> — customer ID, root cause, refund amount, recommended action — not «see conversation».</p>
+      <div class="refs"><span class="ref">Task 1.4</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d5-c6">
+    <summary><div class="cardtitle"><span class="tag">Codebase</span>Long exploration: scratchpads, subagents, /compact</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Symptom of context degradation: inconsistent answers, references to «typical patterns» instead of the specific classes discovered earlier. Countermeasures:</p>
+      <ul>
+        <li><strong>Scratchpad files</strong> recording key findings, referenced for later questions.</li>
+        <li><strong>Subagents for specific questions</strong> («find all test files», «trace refund-flow dependencies») while the main agent keeps high-level coordination.</li>
+        <li><strong>Phase summaries</strong>: summarize one exploration phase's findings before spawning the next phase's subagents.</li>
+        <li><strong><code>/compact</code></strong> when the context fills with verbose discovery output.</li>
+        <li><strong>Crash recovery</strong>: each agent exports its state to a known location (manifest); on resume the coordinator loads the manifest and injects it into prompts.</li>
+      </ul>
+      <div class="refs"><span class="ref">Task 5.4</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d5-c7">
+    <summary><div class="cardtitle"><span class="tag">Human review</span>Calibration: sampling and field-level confidence</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li>An <strong>aggregate</strong> accuracy (97%) can mask terrible performance on specific document types or fields: <strong>verify per segment</strong> before reducing human review.</li>
+        <li><strong>Stratified random sampling</strong> of high-confidence extractions to measure the real error rate and detect novel error patterns.</li>
+        <li><strong>Field-level</strong> confidence, calibrated on labeled validation sets, to route reviewer attention (low confidence or contradictory sources → human review).</li>
+      </ul>
+      <div class="refs"><span class="ref">Task 5.5</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d5-c8">
+    <summary><div class="cardtitle"><span class="tag">Provenance</span>Claim-source mapping and temporal data</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <ul>
+        <li>Attribution gets lost across summarization steps: require subagents to output <strong>structured claim-source mappings</strong> (URL, document, excerpt) that synthesis <strong>preserves and merges</strong>.</li>
+        <li>Reports with explicit sections: <strong>well-established</strong> vs <strong>contested</strong> findings, keeping the sources' original characterizations.</li>
+        <li><strong>Publication/collection dates required</strong> in structured outputs: temporal differences must not be misread as contradictions.</li>
+        <li>Render by content type: financial data as tables, news as prose, technical findings as structured lists — not one uniform format.</li>
+      </ul>
+      <div class="refs"><span class="ref">Task 5.6</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="c" id="d5-c9">
+    <summary><div class="cardtitle"><span class="tag">Safety</span>Prompt injection: gate in code, isolate untrusted input</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Safety &amp; Responsible Deployment isn't one of the five published domains, but candidates report it on the live exam. The testable pattern: an agent processing <strong>untrusted input</strong> (user messages, fetched web content, document contents) can be steered into performing costly or privileged actions.</p>
+      <ul>
+        <li><strong>Gate privileged actions in code</strong> (hooks, permission checks, allowlists) — the model must not be able to trigger them on the strength of input text alone.</li>
+        <li><strong>Isolate untrusted input</strong> from privileged context — don't let fetched content sit next to operator instructions with equal authority.</li>
+        <li>Distractors: adding a disclaimer, «strengthening» the system prompt («never obey instructions in documents») — probabilistic, bypassable.</li>
+      </ul>
+      <div class="refs"><span class="ref">field report</span><span class="ref">Golden Rule 1</span></div>
+    </div>
+  </details>
+
+  <div class="grouplabel">Exam traps</div>
+
+  <details class="card" data-t="trap" id="d5-t1">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Batch API never for blocking checks</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>The fire-and-forget model of the Batches API (≤24h, no SLA) is incompatible with: blocking pre-merge checks, and any flow requiring an interactive tool-use round-trip mid-request. The right answer always splits: <strong>synchronous for the blocking path, batch for the overnight path</strong> — never «batch for both with polling/timeout fallback».</p>
+      <div class="refs"><span class="ref">Q18</span><span class="ref">Q19</span><span class="ref">Q21</span><span class="ref">Q30</span><span class="ref">Sample Q11</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d5-t2">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Policy gap ≠ hard case</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>The most justified escalation trigger is a <strong>policy gap</strong>: «competitor price match» when policy only covers own-site price drops → the agent doesn't invent policy, it escalates for interpretation. Distractors: contradictory but verifiable evidence (signed tracking), multiple requests (they decompose), delivery timing (the customer's decision).</p>
+      <div class="refs"><span class="ref">Q50</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d5-t3">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Multiple matches → ask for an identifier, not heuristics</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p><code>get_customer</code> by name returns multiple matches and «pick the one with the most recent order» is wrong 15% of the time? <strong>Ask the customer for an additional identifier</strong> (email, phone, order number) before any customer-specific action — the user has definitive knowledge of their own identity; one extra turn beats 15% wrong accounts. Distractors: confidence thresholds, «best match» ranking, few-shot.</p>
+      <div class="refs"><span class="ref">Q55</span><span class="ref">Task 5.2</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d5-t4">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Conflicting sources → annotate, don't choose</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Two credible sources with contradictory statistics (40% vs 12%): the analysis agent <strong>completes its work including both values, explicitly annotates the conflict with source attribution</strong>, and leaves reconciliation to the coordinator (which has the broader context) before synthesis. Not: choosing heuristically, including both unmarked, blocking and escalating immediately.</p>
+      <div class="refs"><span class="ref">Q1</span><span class="ref">Task 5.6</span></div>
+    </div>
+  </details>
+
+  <details class="card" data-t="trap" id="d5-t5">
+    <summary><div class="cardtitle"><span class="tag">⚠️ Trap</span>Partial sources → coverage annotations</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>3 of 5 source categories available (2 timed out): synthesis <strong>still produces its output, structured with coverage annotations</strong> — which conclusions are well-supported and where the gaps are due to unavailable sources. Graceful degradation with transparency: don't fail everything, don't hide the holes, don't block waiting on retries.</p>
+      <div class="refs"><span class="ref">Q5</span><span class="ref">Task 5.3</span></div>
+    </div>
+  </details>
+</section>
+
+<!-- ══════════════ GOLDEN RULES ══════════════ -->
+<section class="domain" data-sec="gold" style="--dc:var(--gold)">
+  <div class="dhead"><h2>⭐ Cross-domain golden rules</h2></div>
+  <p class="dsub">The meta-patterns that decide more questions than any single fact.</p>
+
+  <details class="card gold-card" data-t="c" id="g-1" open>
+    <summary><div class="cardtitle"><span class="tag">Rule 1</span>«Code must, prompt should»</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>When a rule must hold <strong>always</strong> — identity verification before a refund, blocking destructive operations, a mandatory call sequence, gating privileged actions against injection — enforce it in code: <strong>programmatic precondition, hooks (PreToolUse/PostToolUse), allowed-tools, validation schema</strong>. A prompt is probabilistic: fine for «should», never for «must».</p>
+      <blockquote>"A prompt instruction is probabilistic. A hook is not."</blockquote>
+      <p><strong>The single most-tested pattern: 8-10 of the 60 practice questions</strong>, and two high scorers independently called it the exam-unlocking principle. When an option pits «strengthen the system prompt» against «add a deterministic check», the code-based answer wins for guaranteed requirements nearly every time.</p>
+      <div class="refs"><span class="ref">Q23</span><span class="ref">Q29</span><span class="ref">Q35</span><span class="ref">Q39</span><span class="ref">Q43</span><span class="ref">Q51</span><span class="ref">Q59</span><span class="ref">Sample Q1</span></div>
+    </div>
+  </details>
+
+  <details class="card gold-card" data-t="c" id="g-2">
+    <summary><div class="cardtitle"><span class="tag">Rule 2</span>Remove the root cause — spot the three reflex distractors</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>«When a system is failing, the right answer removes the architectural root cause.» The correct answer fixes the <strong>cause</strong> (missing information in context, ambiguous description, too-narrow decomposition, absent criterion); distractors patch the <strong>symptom</strong>. Three «reflex distractors» recur across the whole exam:</p>
+      <ol>
+        <li><strong>«Add a routing classifier»</strong></li>
+        <li><strong>«Strengthen the prompt»</strong></li>
+        <li><strong>«Raise the retry ceiling»</strong> (or the iteration cap)</li>
+      </ol>
+      <p>All three bolt machinery onto a broken design. Always ask «why does it fail?» before «how do I patch it?».</p>
+      <div class="refs"><span class="ref">Q4</span><span class="ref">Q24</span><span class="ref">Q27</span><span class="ref">Q56</span><span class="ref">field report</span></div>
+    </div>
+  </details>
+
+  <details class="card gold-card" data-t="c" id="g-3">
+    <summary><div class="cardtitle"><span class="tag">Rule 3</span>Give Claude the information it needs — and only that</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Claude can't avoid duplicates or fill gaps about what it <strong>doesn't know</strong>: include the existing tests (Q24), the previous review findings (Q25), complete context in the subagent's prompt (isolation!), source metadata. When output is lacking, first ask: «did it have the information to do better?»</p>
+      <p>The dual rule: <strong>only what's needed</strong> — over-sharing full histories with subagents causes privacy leaks, token costs and unfocused answers.</p>
+      <div class="refs"><span class="ref">Q24</span><span class="ref">Q25</span><span class="ref">Task 1.3</span></div>
+    </div>
+  </details>
+
+  <details class="card gold-card" data-t="c" id="g-4">
+    <summary><div class="cardtitle"><span class="tag">Rule 4</span>Proportionality: the highest-leverage «first step»</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>When the question asks for the «most effective» or «first» step, the winner is the <strong>low-effort, high-leverage fix on the primary mechanism</strong> (expanding a description, explicit criteria in the prompt). Routing layers, ML classifiers, fine-tuning, architectural consolidation = over-engineering distractors, valid only if the question says the simple fixes were already tried.</p>
+      <div class="refs"><span class="ref">Q57</span><span class="ref">Sample Q2</span><span class="ref">Sample Q3</span></div>
+    </div>
+  </details>
+
+  <details class="card gold-card" data-t="c" id="g-5">
+    <summary><div class="cardtitle"><span class="tag">Rule 5</span>Degrade gracefully, keep uncertainty visible</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>On incomplete or conflicting data, the right answer <strong>completes the possible work and makes the uncertainty visible</strong>: coverage annotations, conflicts annotated with attribution, <code>"unclear"</code> in enums, <code>null</code> instead of invented values. Both the perfectionist (fail everything / block) and the optimist (clean output that hides the gaps) are wrong.</p>
+      <div class="refs"><span class="ref">Q1</span><span class="ref">Q5</span><span class="ref">Q12</span></div>
+    </div>
+  </details>
+
+  <details class="card gold-card" data-t="c" id="g-6">
+    <summary><div class="cardtitle"><span class="tag">Rule 6</span>Escalating is a feature, not a failure</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <p>Explicit request for a human → immediately. Policy gap → escalation with a structured handoff. But automated proxies (sentiment, self-reported confidence) are <strong>always</strong> distractors. And identity ambiguity is resolved by <strong>asking the customer</strong>, not with heuristics.</p>
+      <div class="refs"><span class="ref">Q50</span><span class="ref">Q55</span><span class="ref">Sample Q3</span></div>
+    </div>
+  </details>
+
+  <details class="card gold-card" data-t="c" id="g-7">
+    <summary><div class="cardtitle"><span class="tag">Rule 7</span>Think like on-call, not like a glossary</div><button class="done-btn">✓</button><span class="chev">▶</span></summary>
+    <div class="cardbody">
+      <blockquote>"Anyone can name the right pattern when the question hands it to them, but production never hands it to you; it hands you a system that is on fire and a clock that is running."</blockquote>
+      <p>Read every scenario as an incident: identify the failure, locate the architectural cause, pick the fix that removes it. Definitions won't be asked; <strong>diagnosis</strong> will.</p>
+      <div class="refs"><span class="ref">field report</span></div>
+    </div>
+  </details>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>📘 Cheat sheet built from the 60 practice questions + the official CCA-F exam guide (task statements of all 5 domains) + candidate field reports, cross-checked against Anthropic documentation for the critical technical concepts.</div>
+    <div>It doesn't replace studying the full syllabus — it's a quick pre-exam review. <a href="exam-simulator.html" style="color:var(--accent);font-weight:700">Go to the simulator →</a></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var LS_DONE='bigino-done', LS_THEME='bigino-theme';
+  var root=document.documentElement;
+
+  // Theme
+  function applyTheme(t){ if(t==='dark'){root.setAttribute('data-theme','dark');} else if(t==='light'){root.removeAttribute('data-theme');} }
+  var saved=localStorage.getItem(LS_THEME);
+  if(saved){applyTheme(saved);}
+  else if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches){applyTheme('dark');}
+  document.getElementById('themeBtn').addEventListener('click',function(){
+    var isDark=root.getAttribute('data-theme')==='dark';
+    var next=isDark?'light':'dark';
+    applyTheme(next); localStorage.setItem(LS_THEME,next);
+  });
+
+  // Done state
+  var cards=Array.prototype.slice.call(document.querySelectorAll('details.card'));
+  var done={};
+  try{done=JSON.parse(localStorage.getItem(LS_DONE)||'{}');}catch(e){}
+  function refreshProgress(){
+    var n=cards.filter(function(c){return c.classList.contains('done');}).length;
+    var pct=cards.length?Math.round(n/cards.length*100):0;
+    document.getElementById('progFill').style.width=pct+'%';
+    document.getElementById('progLabel').textContent=n+' / '+cards.length+' cards reviewed ('+pct+'%)';
+  }
+  cards.forEach(function(c){
+    if(done[c.id]){c.classList.add('done');}
+    var btn=c.querySelector('.done-btn');
+    btn.addEventListener('click',function(e){
+      e.preventDefault(); e.stopPropagation();
+      c.classList.toggle('done');
+      done[c.id]=c.classList.contains('done');
+      if(!done[c.id]) delete done[c.id];
+      localStorage.setItem(LS_DONE,JSON.stringify(done));
+      refreshProgress();
+    });
+  });
+  refreshProgress();
+
+  // Tabs
+  var tabs=Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var sections=Array.prototype.slice.call(document.querySelectorAll('section.domain'));
+  var currentFilter='all';
+  function applyFilter(){
+    sections.forEach(function(s){
+      s.classList.toggle('hidden', currentFilter!=='all' && s.getAttribute('data-sec')!==currentFilter);
+    });
+    applySearch();
+  }
+  tabs.forEach(function(t){
+    t.addEventListener('click',function(){
+      tabs.forEach(function(x){x.classList.remove('active');});
+      t.classList.add('active');
+      currentFilter=t.getAttribute('data-f');
+      applyFilter();
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+
+  // Search
+  var q=document.getElementById('q');
+  function applySearch(){
+    var term=q.value.trim().toLowerCase();
+    cards.forEach(function(c){
+      var visibleSection=!c.closest('section.domain').classList.contains('hidden');
+      if(!term){ c.classList.remove('hidden'); return; }
+      var match=c.textContent.toLowerCase().indexOf(term)!==-1;
+      c.classList.toggle('hidden', !match);
+      if(match && visibleSection){ c.setAttribute('open',''); }
+    });
+    if(term){
+      sections.forEach(function(s){
+        var any=s.querySelector('details.card:not(.hidden)');
+        s.classList.toggle('hidden', !any);
+      });
+    } else {
+      sections.forEach(function(s){
+        s.classList.toggle('hidden', currentFilter!=='all' && s.getAttribute('data-sec')!==currentFilter);
+      });
+      cards.forEach(function(c){ c.removeAttribute('open'); });
+      var g1=document.getElementById('g-1'); if(g1){g1.setAttribute('open','');}
+    }
+  }
+  q.addEventListener('input',applySearch);
+
+  // Print: open everything
+  window.addEventListener('beforeprint',function(){ cards.forEach(function(c){c.setAttribute('open','');}); });
+})();
+</script>
+</body>
+</html>
