@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semestre Filtro — Simulatore d'esame</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --paper:#eef1ea;
+    --panel:#fbfbf7;
+    --ink:#16241f;
+    --ink-soft:#4a564e;
+    --line:#c9d1c4;
+    --bio:#2f6b4f;
+    --fis:#274a7a;
+    --chi:#8a3a24;
+    --mix:#5a4a8a;
+    --amber:#c9962c;
+    --good:#2f6b4f;
+    --bad:#a13d3d;
+    --mono:'IBM Plex Mono',monospace;
+    --serif:'Source Serif 4',Georgia,serif;
+    --display:'Fraunces',Georgia,serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, rgba(47,107,79,.05), transparent),
+      var(--paper);
+    color:var(--ink);
+    font-family:var(--serif);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:24px 18px 70px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+
+  /* ---------- header ---------- */
+  header.top{margin-bottom:26px;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"§";font-size:14px;}
+  h1{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:clamp(28px,6vw,38px);
+    margin:0 0 8px;
+    line-height:1.08;
+    letter-spacing:-.01em;
+  }
+  .sub{font-size:14.5px;color:var(--ink-soft);line-height:1.55;max-width:56ch;}
+  .sub b{color:var(--ink);font-weight:600;}
+
+  .disclaimer{
+    background:#f6ecd4;
+    border:1px solid #e0c98a;
+    border-left:5px solid var(--amber);
+    padding:12px 14px;
+    font-size:12.5px;
+    line-height:1.6;
+    margin:20px 0;
+    font-family:var(--mono);
+    color:#57431b;
+  }
+
+  /* ---------- setup screen ---------- */
+  .setup-block{margin-top:8px;}
+  .setup-label{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:26px 0 10px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .setup-label::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  .subject-grid{display:flex;flex-direction:column;gap:10px;}
+  .subj-card{
+    position:relative;
+    background:var(--panel);
+    border:1.5px solid var(--line);
+    padding:14px 16px 14px 20px;
+    cursor:pointer;
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    transition:border-color .15s, transform .1s;
+  }
+  .subj-card::before{
+    content:"";
+    position:absolute; left:0; top:0; bottom:0; width:6px;
+    background:var(--c,var(--ink));
+  }
+  .subj-card:hover{transform:translateX(2px);}
+  .subj-card.selected{border-color:var(--c,var(--ink)); background:#fff;}
+  .subj-card.selected .radio{background:var(--c,var(--ink)); border-color:var(--c,var(--ink));}
+  .subj-name{font-size:16px;font-weight:600;}
+  .subj-meta{font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .radio{
+    width:16px;height:16px;border-radius:50%;
+    border:2px solid var(--line); flex-shrink:0;
+  }
+
+  .count-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .count-chip{
+    font-family:var(--mono);
+    font-size:13px;
+    border:1.5px solid var(--line);
+    background:var(--panel);
+    padding:9px 16px;
+    cursor:pointer;
+  }
+  .count-chip.selected{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+
+  .mode-row{display:flex;flex-direction:column;gap:8px;}
+  .mode-card{
+    border:1.5px solid var(--line);
+    background:var(--panel);
+    padding:12px 14px;
+    cursor:pointer;
+    display:flex;gap:12px;align-items:flex-start;
+  }
+  .mode-card.selected{border-color:var(--ink); background:#fff;}
+  .mode-card .radio{margin-top:2px;}
+  .mode-card.selected .radio{background:var(--ink); border-color:var(--ink);}
+  .mode-title{font-weight:600;font-size:14.5px;}
+  .mode-desc{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.4;}
+
+  .diff-note{
+    font-family:var(--mono);font-size:11px;color:var(--ink-soft);
+    margin-top:8px;
+  }
+
+  button.cta{
+    font-family:var(--mono);
+    font-size:14px;
+    letter-spacing:.03em;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:14px 22px;
+    cursor:pointer;
+    width:100%;
+    margin-top:26px;
+    transition:opacity .15s;
+  }
+  button.cta:hover{opacity:.88;}
+  button.cta:disabled{opacity:.35;cursor:not-allowed;}
+  button.cta:focus-visible{outline:2px solid var(--amber); outline-offset:3px;}
+
+  /* ---------- exam ---------- */
+  #exam{display:none;}
+  .exam-bar{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-family:var(--mono); font-size:12.5px;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:10px; margin-bottom:18px;
+    color:var(--ink-soft);
+  }
+  .exam-bar b{color:var(--ink);}
+  .progress{height:3px;background:var(--line);margin-bottom:22px;position:relative;}
+  .progress .fill{position:absolute;left:0;top:0;bottom:0;background:var(--amber);width:0%;transition:width .25s;}
+
+  .qcard{
+    background:var(--panel);
+    border:1.5px solid var(--line);
+    padding:0;
+    margin-bottom:18px;
+    position:relative;
+  }
+  .qcard-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 16px;
+    border-bottom:1px dashed var(--line);
+    font-family:var(--mono); font-size:10.5px;
+    letter-spacing:.06em; text-transform:uppercase;
+    color:#fff;
+  }
+  .qcard-body{padding:18px 16px;}
+  .qtext{font-size:16.5px;line-height:1.55;margin-bottom:16px;}
+  .qtext input.blank{
+    font-family:var(--mono);
+    border:none;border-bottom:2px solid var(--ink);
+    background:transparent;
+    font-size:15px;
+    width:150px;
+    padding:2px 4px;
+  }
+  .opts{display:flex;flex-direction:column;gap:9px;}
+  .opt{
+    border:1.5px solid var(--line);
+    padding:11px 13px;
+    cursor:pointer;
+    font-size:15px;
+    line-height:1.4;
+    display:flex; gap:11px;
+    background:#fff;
+    transition:border-color .1s;
+  }
+  .opt:hover{border-color:var(--ink);}
+  .opt.locked{cursor:default;}
+  .opt.right-answer{border-color:var(--good); background:#eef5ee;}
+  .opt.wrong-answer{border-color:var(--bad); background:#f8ecec;}
+  .opt input{margin-top:3px;}
+
+  .feedback{
+    margin-top:14px; padding:12px 14px;
+    font-size:13.5px; line-height:1.55;
+    border-left:4px solid var(--ink);
+    background:#f2f2ec;
+    display:none;
+  }
+  .feedback.show{display:block;}
+  .feedback.ok{border-color:var(--good);}
+  .feedback.no{border-color:var(--bad);}
+  .feedback b{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;display:block;margin-bottom:4px;}
+
+  .navrow{display:flex;justify-content:space-between;gap:10px;margin-top:4px;}
+  .navrow button{
+    font-family:var(--mono); font-size:13px;
+    padding:11px 16px;
+    border:1.5px solid var(--ink);
+    background:transparent;
+    cursor:pointer;
+  }
+  .navrow button.primary{background:var(--ink);color:var(--paper);}
+  .navrow button:disabled{opacity:.3;cursor:default;}
+
+  /* ---------- results ---------- */
+  #results{display:none;}
+  .score-hero{
+    display:flex; align-items:baseline; gap:16px;
+    margin:10px 0 4px;
+  }
+  .score-big{font-family:var(--display); font-weight:600; font-size:56px;}
+  .score-pct{font-family:var(--mono);font-size:14px;color:var(--ink-soft);}
+  .score-note{font-size:14.5px;color:var(--ink-soft);margin-bottom:24px;}
+
+  .review{
+    background:var(--panel);
+    border:1.5px solid var(--line);
+    padding:14px 16px;
+    margin-bottom:10px;
+    border-left:5px solid var(--line);
+  }
+  .review.correct{border-left-color:var(--good);}
+  .review.wrong{border-left-color:var(--bad);}
+  .review .qmeta{font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .review .qtext{font-size:14.5px;margin-bottom:9px;}
+  .review .ans{font-size:13px;line-height:1.6;}
+  .review .ans .yourwrong{color:var(--bad);}
+  .review .ans .right{color:var(--good);}
+  .review .expl{font-size:12.5px;color:var(--ink-soft);margin-top:6px;font-style:italic;}
+
+  footer.note{
+    font-family:var(--mono); font-size:10.5px; color:var(--ink-soft);
+    margin-top:38px; line-height:1.7; border-top:1px solid var(--line); padding-top:14px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ SETUP ============ -->
+  <div id="setup">
+    <header class="top">
+      <div class="eyebrow">Simulazione non ufficiale</div>
+      <h1>Semestre Filtro<br>Medicina 2026/27</h1>
+      <div class="sub">Prova d'esercitazione costruita sui <b>Syllabus ufficiali del MUR</b> (DM 704/2026, 19 giugno 2026) per Biologia, Fisica e Chimica e propedeutica biochimica. Domande di livello medio-alto, pensate per ragionamento e collegamenti, non solo definizioni.</div>
+    </header>
+
+    <div class="disclaimer">
+      ⚠ Domande scritte sugli argomenti dei syllabus ufficiali, non domande reali d'esame — quelle non sono mai state rese pubbliche dal MUR. La piattaforma ufficiale CISIA (semestreaperto-medodovet.it) richiede login e non è accessibile per l'estrazione automatica dei contenuti.
+    </div>
+
+    <div class="setup-label">1 — Materia</div>
+    <div class="subject-grid" id="subjectGrid"></div>
+
+    <div class="setup-label">2 — Numero di domande</div>
+    <div class="count-row" id="countRow"></div>
+    <div class="diff-note" id="countNote"></div>
+
+    <div class="setup-label">3 — Correzione</div>
+    <div class="mode-row" id="modeRow"></div>
+
+    <button class="cta" id="startBtn">Inizia simulazione →</button>
+
+    <footer class="note">
+      Fonti: Syllabus_BIOLOGIA_finale2026.pdf · Syllabus_FISICA_finale2026.pdf · Syllabus Chim.Prop.Bioch.-finale-2026.pdf — mur.gov.it, pubblicati 19/06/2026.<br>
+      Formato prova reale: 31 domande/materia, 50 minuti, appelli 10 dic 2026 e 11 gen 2027.
+    </footer>
+  </div>
+
+  <!-- ============ EXAM ============ -->
+  <div id="exam">
+    <div class="exam-bar">
+      <div>Domanda <b id="qposNow">1</b> / <span id="qposTotal">20</span></div>
+      <div id="examSubjLabel">—</div>
+    </div>
+    <div class="progress"><div class="fill" id="progFill"></div></div>
+    <div id="qhost"></div>
+  </div>
+
+  <!-- ============ RESULTS ============ -->
+  <div id="results">
+    <header class="top">
+      <div class="eyebrow" id="resultSubject">—</div>
+      <h1>Risultato</h1>
+      <div class="score-hero">
+        <div class="score-big" id="scoreBig">0/20</div>
+        <div class="score-pct" id="scorePct">0%</div>
+      </div>
+      <div class="score-note" id="scoreNote"></div>
+    </header>
+    <div id="reviewHost"></div>
+    <button class="cta" onclick="goHome()">← Nuova simulazione</button>
+  </div>
+
+</div>
+
+<script>
+/* =====================================================================
+   QUESTION BANKS — medio-alta difficoltà, ancorate ai syllabus MUR 2026
+   type: 'mc' (scelta multipla) | 'fill' (completamento)
+   answer: index (mc) | array di stringhe accettate (fill)
+   expl: breve spiegazione mostrata a fine domanda / nel riepilogo
+===================================================================== */
+const BANKS = {
+bio: [
+{type:'mc', topic:'Macromolecole', q:'Un enzima che rimuove un gruppo fosfato da un substrato appartiene a quale classe?', opts:['Chinasi','Fosfatasi','Acetilasi','Deubiquitinasi'], answer:1, expl:'Le chinasi aggiungono fosfati (fosforilazione), le fosfatasi li rimuovono (defosforilazione) — sono coppie funzionali opposte.'},
+{type:'mc', topic:'Cellula procariotica', q:'La coniugazione batterica, a differenza della trasformazione, richiede:', opts:['L\'assorbimento di DNA libero dall\'ambiente','Il contatto diretto tra due cellule tramite pilo sessuale','Un batteriofago come vettore','La lisi della cellula donatrice'], answer:1, expl:'Coniugazione = trasferimento diretto via pilo; trasformazione = assorbimento di DNA libero; trasduzione = mediata da fagi.'},
+{type:'fill', topic:'Virus', q:'Nel ciclo ___ di un fago, il DNA virale si integra nel cromosoma batterico senza produrre immediatamente nuove particelle virali.', answer:['lisogenico']},
+{type:'mc', topic:'Cromatina', q:'La metilazione del DNA e la formazione di eterocromatina sono associate a quale effetto sull\'espressione genica?', opts:['Attivazione trascrizionale', 'Silenziamento trascrizionale', 'Aumento dello splicing alternativo','Accelerazione della replicazione'], answer:1, expl:'Eterocromatina condensata e DNA metilato sono generalmente correlati a geni silenziati, non attivamente trascritti.'},
+{type:'mc', topic:'Replicazione DNA', q:'Perché la sintesi del filamento discontinuo produce frammenti di Okazaki?', opts:['Perché la DNA polimerasi sintetizza solo in direzione 5\'→3\' e la forcella si apre in un\'unica direzione','Perché la DNA ligasi lavora a intermittenza','Perché le topoisomerasi bloccano la sintesi periodicamente','Perché il filamento discontinuo non ha un\'origine di replicazione'], answer:0, expl:'La polimerizzazione è unidirezionale (5\'→3\'); su uno dei due stampi questo costringe a sintetizzare a tratti, poi uniti dalla ligasi.'},
+{type:'fill', topic:'Trascrizione', q:'Negli eucarioti, i geni codificanti proteine sono trascritti dall\'RNA polimerasi ___, mentre l\'rRNA 5.8S/18S/28S è trascritto principalmente dalla I.', answer:['II','2','due']},
+{type:'mc', topic:'Maturazione mRNA', q:'Quale delle seguenti NON è una modificazione post-trascrizionale dell\'mRNA maturo?', opts:['Capping al 5\'','Poliadenilazione al 3\'','Splicing degli introni','Formazione del legame peptidico'], answer:3, expl:'Il legame peptidico si forma durante la traduzione (sintesi proteica), non durante la maturazione dell\'mRNA.'},
+{type:'mc', topic:'Genetica mendeliana', q:'Due genitori eterozigoti per un carattere autosomico recessivo hanno che probabilità di avere un figlio malato?', opts:['0%','25%','50%','100%'], answer:1, expl:'Aa × Aa → 1/4 aa (malato), 1/2 Aa (portatore sano), 1/4 AA — probabilità del fenotipo malato = 25%.'},
+{type:'mc', topic:'Cariotipo', q:'Una traslocazione bilanciata tra due cromosomi, a differenza di un\'aneuploidia, comporta tipicamente:', opts:['Perdita netta di materiale genetico','Nessun guadagno o perdita netta di materiale genetico, ma riarrangiamento','Triplicazione di un intero cromosoma','Assenza totale di un cromosoma'], answer:1, expl:'Nella traslocazione bilanciata il materiale genetico si scambia tra cromosomi senza perdita netta; il portatore è spesso fenotipicamente normale ma a rischio nella prole.'},
+{type:'fill', topic:'Membrana', q:'Il trasporto secondo gradiente di concentrazione tramite proteine canale o trasportatrici, senza consumo diretto di ATP, si chiama diffusione ___.', answer:['facilitata']},
+{type:'mc', topic:'Trasporto di membrana', q:'Le pompe ATPasi differiscono dai trasportatori ABC principalmente perché:', opts:['Le ATPasi non usano mai ATP','Sono categorie sovrapponibili: molte pompe ATPasi sono anche trasportatori ABC che usano ATP per il trasporto attivo','I trasportatori ABC agiscono solo per diffusione passiva','Le ATPasi trasportano solo acqua'], answer:1, expl:'Il syllabus li cita insieme come esempi di trasporto attivo: entrambi idrolizzano ATP per muovere soluti contro gradiente.'},
+{type:'mc', topic:'Mitocondri', q:'Le proteine mitocondriali codificate dal DNA nucleare devono attraversare la membrana mitocondriale esterna tramite quale complesso?', opts:['TIM','TOM','SAM','OXA'], answer:1, expl:'TOM (Translocase of the Outer Membrane) importa le proteine attraverso la membrana esterna; TIM agisce sulla membrana interna.'},
+{type:'mc', topic:'Via secretoria', q:'Una proteina mal ripiegata nel reticolo endoplasmatico che attiva la risposta UPR e viene degradata, passa tipicamente attraverso quale via?', opts:['Autofagia mediata da chaperon','ERAD (ER-associated degradation)','Fagocitosi','Glicolisi'], answer:1, expl:'ERAD retrotrasloca le proteine mal ripiegate dal RE al citosol per la degradazione proteasomica, in risposta allo stress del reticolo (UPR).'},
+{type:'fill', topic:'Citoscheletro', q:'Il complesso proteico Arp2/___ nuclea la formazione di reti di actina ramificate, fondamentali nella migrazione cellulare.', answer:['3']},
+{type:'mc', topic:'Segnalazione cellulare', q:'Un recettore tirosin-chinasico (es. recettore EGF) attiva tipicamente quale via di trasduzione del segnale a valle?', opts:['Via Ras-MAP chinasi','Via diretta all\'importazione nucleare senza intermediari','Via del complesso APC/C','Via glicolitica diretta'], answer:0, expl:'I recettori tirosin-chinasici innescano cascate come Ras-MAPK, fondamentali per proliferazione cellulare; è anche via oncogenica comune.'},
+{type:'mc', topic:'Ciclo cellulare', q:'Se p53 è inattivato da una mutazione, quale conseguenza è più diretta?', opts:['Blocco permanente del ciclo cellulare','Ridotta capacità di indurre apoptosi o arresto in risposta a danno al DNA','Aumento della riparazione del DNA','Accelerazione della meiosi'], answer:1, expl:'p53 normalmente arresta il ciclo o induce apoptosi di fronte a danno al DNA; la sua perdita di funzione permette a cellule danneggiate di proliferare (via comune nel cancro).'},
+{type:'mc', topic:'Apoptosi', q:'La via apoptotica intrinseca ed estrinseca convergono entrambe su quale evento comune?', opts:['Attivazione delle caspasi esecutrici','Sintesi di nuovo DNA','Fusione con i lisosomi','Blocco della trascrizione'], answer:0, expl:'Sia la via intrinseca (mitocondriale) che estrinseca (recettori di morte) convergono sull\'attivazione delle caspasi esecutrici che smantellano la cellula.'},
+{type:'fill', topic:'Meiosi', q:'Lo scambio di segmenti tra cromatidi omologhi durante la profase I, fonte di variabilità genetica, si chiama ___.', answer:['crossing over','crossing-over']},
+{type:'mc', topic:'Genoma umano', q:'Le sequenze LINE e SINE nel genoma umano sono esempi di:', opts:['Geni codificanti unici','Sequenze ripetute intersperse (elementi mobili)','Sequenze centromeriche esclusive','Introni costitutivi'], answer:1, expl:'LINE e SINE sono elementi trasponibili ripetuti e dispersi nel genoma, distinti dai geni a copia singola o dalle ripetizioni in tandem.'},
+{type:'mc', topic:'Operone Lac', q:'In assenza di lattosio, l\'operone Lac è tipicamente:', opts:['Attivamente trascritto ad alti livelli','Represso dal legame del repressore Lac all\'operatore','Trascritto solo dalla RNA polimerasi II','Silenziato per metilazione permanente'], answer:1, expl:'Il repressore Lac si lega all\'operatore bloccando la trascrizione quando il lattosio (induttore) è assente.'},
+{type:'mc', topic:'Ereditarietà', q:'Una malattia legata al cromosoma X recessiva colpisce prevalentemente:', opts:['Le femmine, perché hanno due copie del cromosoma X','I maschi, perché emizigoti per l\'unico cromosoma X','Entrambi i sessi in egual misura sempre','Solo le femmine omozigoti'], answer:1, expl:'I maschi (XY) sono emizigoti per i geni sull\'X: un solo allele recessivo è sufficiente a manifestare la malattia, a differenza delle femmine (XX) che necessitano di due copie.'},
+{type:'mc', topic:'Osmosi cellulare', q:'Una cellula posta in soluzione ipotonica rispetto al citoplasma tende a:', opts:['Raggrinzirsi per perdita d\'acqua','Rigonfiarsi, con rischio di lisi','Rimanere invariata','Perdere soluti attivamente'], answer:1, expl:'In ambiente ipotonico l\'acqua entra per osmosi nella cellula (più concentrata), causando rigonfiamento e possibile lisi.'},
+{type:'fill', topic:'Codice genetico', q:'Il codice genetico è detto ___ perché più codoni possono specificare lo stesso amminoacido.', answer:['degenerato','ridondante']},
+{type:'mc', topic:'Riparazione del DNA', q:'Un danno al DNA su singolo filamento (es. dimero di timina da UV) viene tipicamente riparato tramite quale meccanismo generale?', opts:['Ricombinazione omologa obbligatoria','Escissione e risintesi del tratto danneggiato usando il filamento intatto come stampo','Duplicazione dell\'intero cromosoma','Apoptosi immediata della cellula'], answer:1, expl:'I meccanismi di riparazione per escissione (nucleotidica o di base) rimuovono il tratto danneggiato e lo risintetizzano usando il filamento complementare integro come stampo.'},
+{type:'mc', topic:'Proteine chaperon', q:'Il ruolo principale delle proteine chaperon nel reticolo endoplasmatico è:', opts:['Catalizzare la glicolisi','Assistere il corretto ripiegamento delle proteine neosintetizzate','Sintetizzare nuovi lipidi di membrana','Degradare il DNA danneggiato'], answer:1, expl:'Chaperon come calnexina/calreticulina assistono il folding e il controllo qualità delle proteine nel RE prima della loro secrezione o smistamento.'},
+],
+fis: [
+{type:'mc', topic:'Cinematica', q:'Un corpo lanciato orizzontalmente da un\'altezza h, trascurando l\'attrito dell\'aria, tocca terra dopo un tempo che dipende:', opts:['Solo dalla velocità orizzontale iniziale','Solo dall\'altezza h e dall\'accelerazione di gravità, non dalla velocità orizzontale','Sia da h che dalla velocità orizzontale in egual misura','Dalla massa del corpo'], answer:1, expl:'Nel moto parabolico, componente orizzontale e verticale sono indipendenti: il tempo di caduta dipende solo dal moto verticale (h e g), non dalla velocità orizzontale.'},
+{type:'mc', topic:'Dinamica', q:'Un blocco è fermo su un piano inclinato scabro. Quale affermazione sulla forza d\'attrito statico è corretta?', opts:['È sempre pari al prodotto tra coefficiente statico e peso totale','Si adatta fino a un valore massimo, equilibrando la componente del peso lungo il piano','È indipendente dall\'angolo di inclinazione','Agisce sempre nella direzione del moto'], answer:1, expl:'L\'attrito statico non è fisso: si adatta (fino al valore massimo μs·N) per mantenere l\'equilibrio, bilanciando esattamente la componente del peso lungo il piano finché il blocco resta fermo.'},
+{type:'fill', topic:'Lavoro ed energia', q:'Il teorema dell\'energia ___ afferma che il lavoro totale compiuto su un corpo è pari alla variazione della sua energia cinetica.', answer:['cinetica']},
+{type:'mc', topic:'Quantità di moto', q:'In un urto perfettamente anelastico tra due corpi, cosa si conserva e cosa NO?', opts:['Si conserva sia la quantità di moto che l\'energia cinetica','Si conserva la quantità di moto, ma non l\'energia cinetica totale (parte si dissipa)','Non si conserva nulla','Si conserva solo l\'energia cinetica'], answer:1, expl:'Negli urti anelastici la quantità di moto del sistema isolato si conserva sempre; l\'energia cinetica si conserva solo negli urti elastici.'},
+{type:'mc', topic:'Fluidostatica', q:'Perché un corpo di densità inferiore a quella del fluido in cui è immerso galleggia?', opts:['Perché la pressione idrostatica è nulla in superficie','Perché la spinta di Archimede (pari al peso del fluido spostato) supera il peso del corpo','Perché la tensione superficiale lo sostiene','Perché la viscosità del fluido lo blocca'], answer:1, expl:'Il principio di Archimede: la spinta verso l\'alto eguaglia il peso del fluido spostato; se questo supera il peso del corpo, il corpo galleggia.'},
+{type:'mc', topic:'Idrodinamica', q:'In un condotto a sezione variabile percorso da un fluido ideale in moto stazionario, dove la sezione si restringe la velocità:', opts:['Diminuisce, per conservazione della portata','Aumenta, per conservazione della portata (equazione di continuità)','Resta costante sempre','Dipende solo dalla viscosità'], answer:1, expl:'L\'equazione di continuità (A·v = costante) impone che, a portata costante, una riduzione di sezione comporti un aumento della velocità del fluido.'},
+{type:'fill', topic:'Bernoulli', q:'Il teorema di ___ collega pressione, velocità e quota in un fluido ideale, ed è alla base dell\'analisi di stenosi e aneurismi vascolari.', answer:['Bernoulli']},
+{type:'mc', topic:'Fluidi reali', q:'Secondo la legge di Poiseuille, raddoppiando il raggio di un condotto (a parità di altre condizioni), la resistenza idraulica:', opts:['Raddoppia','Si dimezza','Diminuisce di un fattore 16 (dipendenza da r⁴)','Resta invariata'], answer:2, expl:'La resistenza idraulica in Poiseuille è inversamente proporzionale a r⁴: raddoppiando r, la resistenza scende di un fattore 2⁴=16.'},
+{type:'mc', topic:'Onde meccaniche', q:'Se la frequenza di un\'onda meccanica raddoppia mentre la velocità di propagazione nel mezzo resta costante, la lunghezza d\'onda:', opts:['Raddoppia','Si dimezza','Resta invariata','Quadruplica'], answer:1, expl:'Da v = λ·f, a v costante, se f raddoppia allora λ deve dimezzarsi per mantenere il prodotto costante.'},
+{type:'mc', topic:'Effetto Doppler', q:'Una sorgente sonora si avvicina a un osservatore fermo. L\'osservatore percepisce:', opts:['Una frequenza più bassa del reale','Una frequenza più alta del reale','Nessuna variazione di frequenza','Solo una variazione di ampiezza, non di frequenza'], answer:1, expl:'Per effetto Doppler, l\'avvicinamento della sorgente comprime le onde percepite, aumentando la frequenza apparente (suono più acuto).'},
+{type:'fill', topic:'Termodinamica', q:'Il ___ principio della termodinamica afferma che l\'energia interna di un sistema varia in base al calore scambiato e al lavoro compiuto (ΔU = Q − L).', answer:['primo']},
+{type:'mc', topic:'Gas perfetti', q:'Un gas ideale subisce una trasformazione isoterma. Cosa si può dire di Q e L?', opts:['Q = 0 e L = 0 sempre','ΔU = 0, quindi Q = L (tutto il calore assorbito diventa lavoro)','L\'energia interna aumenta sempre','Il gas non scambia calore con l\'ambiente'], answer:1, expl:'In una isoterma per un gas ideale l\'energia interna dipende solo da T, quindi ΔU=0: il calore assorbito è interamente convertito in lavoro (Q=L).'},
+{type:'mc', topic:'Secondo principio', q:'Il rendimento di una macchina termica reale rispetto al ciclo di Carnot ideale operante tra le stesse temperature è:', opts:['Sempre maggiore','Sempre uguale','Sempre minore o uguale, mai maggiore','Del tutto indipendente'], answer:2, expl:'Il ciclo di Carnot rappresenta il limite superiore teorico di rendimento tra due temperature date; nessuna macchina reale può superarlo (secondo principio).'},
+{type:'mc', topic:'Elettrostatica', q:'Raddoppiando la distanza tra due cariche puntiformi, la forza di Coulomb tra loro:', opts:['Raddoppia','Si dimezza','Si riduce a un quarto (dipendenza da 1/r²)','Resta invariata'], answer:2, expl:'La legge di Coulomb ha dipendenza 1/r²: raddoppiando r, la forza si riduce di un fattore 4 (1/2²).'},
+{type:'fill', topic:'Circuiti', q:'La legge di ___ lega tensione, resistenza e corrente tramite V = R·I.', answer:['Ohm']},
+{type:'mc', topic:'Resistenze', q:'Collegando tre resistenze uguali R in parallelo, la resistenza equivalente è:', opts:['3R','R/3','R','9R'], answer:1, expl:'In parallelo, 1/Req = 1/R+1/R+1/R = 3/R, quindi Req = R/3.'},
+{type:'mc', topic:'Condensatori', q:'Inserendo un dielettrico tra le armature di un condensatore piano, la capacità:', opts:['Diminuisce','Aumenta','Resta invariata','Si annulla'], answer:1, expl:'Il dielettrico aumenta la capacità di un fattore pari alla sua costante dielettrica relativa, riducendo il campo elettrico effettivo tra le armature.'},
+{type:'mc', topic:'Magnetismo', q:'Una carica positiva si muove parallelamente alle linee di un campo magnetico uniforme. La forza di Lorentz su di essa è:', opts:['Massima','Nulla, poiché sin(0°)=0','Diretta come il campo','Sempre perpendicolare alla velocità indipendentemente dall\'angolo'], answer:1, expl:'La forza di Lorentz F=qv×B dipende dal seno dell\'angolo tra v e B; se sono paralleli l\'angolo è 0° e la forza è nulla.'},
+{type:'mc', topic:'Induzione elettromagnetica', q:'Secondo la legge di Faraday-Neumann-Lenz, la forza elettromotrice indotta in un circuito è proporzionale a:', opts:['Il valore assoluto del flusso magnetico concatenato','La variazione nel tempo del flusso magnetico concatenato','La resistenza del circuito','La lunghezza del filo conduttore'], answer:1, expl:'La fem indotta è pari (in modulo) alla rapidità di variazione del flusso magnetico concatenato: fem = −dΦ/dt.'},
+{type:'fill', topic:'Radiazioni', q:'Il tempo necessario affinché la metà dei nuclei di un campione radioattivo decada è detto ___.', answer:['emivita','tempo di dimezzamento']},
+{type:'mc', topic:'Fotoni', q:'Confrontando un fotone di luce ultravioletta e uno di luce infrarossa, quale ha maggiore energia?', opts:['Il fotone infrarosso, perché ha lunghezza d\'onda maggiore','Il fotone ultravioletto, perché ha frequenza maggiore','Hanno la stessa energia','Dipende solo dall\'intensità della sorgente'], answer:1, expl:'E = h·f: l\'ultravioletto ha frequenza (e quindi energia) maggiore dell\'infrarosso, pur avendo lunghezza d\'onda minore.'},
+{type:'mc', topic:'Legge di Lambert-Beer', q:'Aumentando la concentrazione di una soluzione assorbente, a parità di cammino ottico, l\'assorbanza:', opts:['Diminuisce linearmente','Aumenta linearmente con la concentrazione','Resta costante','Diventa negativa'], answer:1, expl:'La legge di Lambert-Beer stabilisce una proporzionalità diretta tra assorbanza e concentrazione (a cammino ottico e coefficiente di estinzione fissi).'},
+{type:'mc', topic:'Ottica', q:'Una lente convergente forma un\'immagine reale e capovolta quando l\'oggetto si trova:', opts:['Tra il fuoco e la lente','Oltre la distanza focale','Esattamente nel fuoco','Solo se la lente è divergente'], answer:1, expl:'Con oggetto oltre il fuoco di una lente convergente si forma un\'immagine reale, capovolta (dietro la lente); entro il fuoco si ha invece immagine virtuale e diritta.'},
+{type:'mc', topic:'Vettori', q:'Il prodotto scalare tra due vettori perpendicolari tra loro vale:', opts:['Il prodotto dei loro moduli','Zero','Il doppio del prodotto dei moduli','Non è definito'], answer:1, expl:'Il prodotto scalare è |A||B|cosθ; per θ=90°, cos90°=0, quindi il prodotto scalare è nullo.'},
+],
+chi: [
+{type:'mc', topic:'Struttura atomica', q:'Due isotopi dello stesso elemento differiscono per:', opts:['Numero di protoni','Numero di neutroni (stesso numero atomico, diverso numero di massa)','Numero di elettroni di valenza','Carica netta dell\'atomo'], answer:1, expl:'Gli isotopi hanno lo stesso numero atomico Z (stessi protoni) ma diverso numero di massa A, quindi diverso numero di neutroni.'},
+{type:'mc', topic:'Configurazione elettronica', q:'Secondo la regola di Hund, gli elettroni che occupano orbitali degeneri (stessa energia) tendono a:', opts:['Accoppiarsi subito nello stesso orbitale','Occupare singolarmente più orbitali possibili prima di accoppiarsi, con spin paralleli','Occupare sempre l\'orbitale di energia più bassa','Non seguire alcuna regola specifica'], answer:1, expl:'La regola di Hund massimizza il numero di elettroni spaiati con spin parallelo negli orbitali degeneri, prima che avvenga l\'accoppiamento.'},
+{type:'fill', topic:'Legame chimico', q:'Un atomo di carbonio con ibridazione ___ forma legami a 120° ed è tipico di alcheni e composti aromatici planari.', answer:['sp2','sp²']},
+{type:'mc', topic:'Interazioni deboli', q:'Perché l\'acqua ha un punto di ebollizione anomalmente alto rispetto ad altri idruri simili (es. H2S)?', opts:['Per la sua massa molecolare elevata','Per la formazione estesa di legami idrogeno intermolecolari','Per l\'assenza di polarità','Per interazioni di van der Waals molto forti e nient\'altro'], answer:1, expl:'I legami idrogeno tra molecole d\'acqua, particolarmente estesi e forti per la geometria e polarità della molecola, richiedono più energia per essere rotti in ebollizione.'},
+{type:'mc', topic:'Gas', q:'Un gas viene compresso isotermicamente dimezzando il volume. Secondo Boyle, la pressione:', opts:['Si dimezza','Raddoppia','Resta invariata','Quadruplica'], answer:1, expl:'A T costante, pV=costante: dimezzando V, p deve raddoppiare per mantenere il prodotto costante.'},
+{type:'fill', topic:'Termodinamica chimica', q:'Una reazione con ΔG negativo a T e p costanti è definita ___ (spontanea).', answer:['esoergonica']},
+{type:'mc', topic:'Proprietà colligative', q:'Aggiungendo soluto non volatile a un solvente puro, il punto di congelamento della soluzione rispetto al solvente puro:', opts:['Si innalza','Si abbassa (abbassamento crioscopico)','Resta invariato','Dipende solo dal colore del soluto'], answer:1, expl:'L\'abbassamento crioscopico è una proprietà colligativa: la presenza di soluto abbassa il punto di congelamento rispetto al solvente puro, proporzionalmente alla molalità.'},
+{type:'mc', topic:'Soluzioni', q:'Una soluzione elettrolitica rispetto a una non elettrolitica alla stessa molalità mostra effetti colligativi:', opts:['Identici, perché la molalità è la stessa','Amplificati, per il fattore correttivo di van\'t Hoff legato alla dissociazione ionica','Ridotti sempre','Nulli, perché gli ioni non contano'], answer:1, expl:'Gli elettroliti si dissociano in più particelle in soluzione: il fattore di van\'t Hoff (i) amplifica gli effetti colligativi proporzionalmente al numero di ioni prodotti.'},
+{type:'mc', topic:'Cinetica chimica', q:'Un aumento di temperatura accelera una reazione chimica principalmente perché:', opts:['Aumenta la concentrazione dei reagenti','Aumenta la frazione di molecole con energia superiore all\'energia di attivazione (Arrhenius)','Diminuisce l\'energia di attivazione della reazione','Cambia il segno di ΔG'], answer:1, expl:'Secondo Arrhenius, l\'aumento di T aumenta la frazione di molecole con energia cinetica sufficiente a superare la barriera di attivazione, non abbassa la barriera stessa (questo lo fa solo un catalizzatore).'},
+{type:'mc', topic:'Equilibrio chimico', q:'Se una reazione esotermica all\'equilibrio viene riscaldata, secondo Le Chatelier l\'equilibrio si sposta:', opts:['Verso i prodotti, favorendo ulteriormente la reazione diretta','Verso i reagenti, sfavorendo la reazione esotermica diretta','Non si sposta mai con la temperatura','Si annulla completamente'], answer:1, expl:'Il calore si comporta come un "prodotto" in una reazione esotermica: aumentando T, l\'equilibrio si sposta verso i reagenti per contrastare la perturbazione.'},
+{type:'mc', topic:'Acidi e basi', q:'Un acido con pKa molto basso (es. pKa = -1) rispetto a uno con pKa = 4 è:', opts:['Più debole','Più forte (più dissociato in soluzione acquosa)','Della stessa forza','Non è possibile confrontarli'], answer:1, expl:'Più basso è il pKa, più l\'acido è dissociato/forte: un pKa negativo indica un acido forte, molto più dissociato di uno con pKa=4 (acido debole).'},
+{type:'fill', topic:'Soluzioni tampone', q:'L\'equazione di Henderson-___ permette di calcolare il pH di un tampone: pH = pKa + log([A⁻]/[HA]).', answer:['Hasselbalch']},
+{type:'mc', topic:'Tamponi biologici', q:'Nel sangue, il tampone acido carbonico/bicarbonato mantiene il pH stabile principalmente perché:', opts:['CO2 e bicarbonato reagiscono per neutralizzare eccessi di H+ o OH-, con CO2 regolabile tramite la respirazione','Il bicarbonato è chimicamente inerte','Il pH del sangue non varia mai per definizione','La CO2 non ha alcun ruolo nel sistema tampone'], answer:0, expl:'Il sistema CO2/HCO3⁻ tampona il pH ematico; la componente CO2 è regolabile rapidamente tramite la ventilazione polmonare, rendendolo un sistema tampone fisiologicamente dinamico.'},
+{type:'mc', topic:'Ossidoriduzione', q:'In una cella galvanica, l\'ossidazione avviene:', opts:['Al catodo','All\'anodo','In entrambi gli elettrodi contemporaneamente','Solo nel ponte salino'], answer:1, expl:'Per convenzione, l\'ossidazione (perdita di elettroni) avviene sempre all\'anodo; la riduzione avviene al catodo.'},
+{type:'mc', topic:'Chimica organica - stereochimica', q:'Due enantiomeri di una stessa molecola hanno:', opts:['Proprietà chimico-fisiche completamente diverse tra loro','Le stesse proprietà chimico-fisiche, ma ruotano la luce polarizzata in direzioni opposte','Formule molecolari diverse','Punti di ebollizione sempre diversi'], answer:1, expl:'Gli enantiomeri sono immagini speculari non sovrapponibili: condividono tutte le proprietà chimico-fisiche scalari, ma differiscono nell\'interazione con la luce polarizzata (potere ottico rotatorio) e nella reattività con altre molecole chirali.'},
+{type:'mc', topic:'Reattività organica', q:'Una reazione SN2 su un alogenuro alchilico procede con:', opts:['Formazione di un carbocatione intermedio stabile','Attacco concertato del nucleofilo con inversione di configurazione (meccanismo a un solo stadio)','Nessuna dipendenza dalla concentrazione del nucleofilo','Perdita completa di stereochimica (racemizzazione)'], answer:1, expl:'SN2 è un meccanismo concertato a un solo stadio: il nucleofilo attacca da un lato mentre il gruppo uscente lascia dall\'altro, causando inversione di configurazione (a differenza di SN1, che passa per un carbocatione e può dare racemizzazione).'},
+{type:'fill', topic:'Biomolecole', q:'La tautomeria cheto-___ è rilevante per basi azotate come la citosina e per l\'acido urico.', answer:['enolica']},
+{type:'mc', topic:'Proteine', q:'La struttura secondaria di una proteina (es. alfa-elica, foglietto beta) è stabilizzata principalmente da:', opts:['Legami peptidici covalenti aggiuntivi','Legami idrogeno tra gruppi C=O e N-H dello scheletro peptidico','Ponti disolfuro tra cisteine','Interazioni ioniche tra catene laterali'], answer:1, expl:'Le strutture secondarie regolari sono stabilizzate da legami idrogeno ripetitivi tra gli atomi dello scheletro polipeptidico (non delle catene laterali).'},
+{type:'mc', topic:'Carboidrati', q:'La ciclizzazione del glucosio in soluzione acquosa genera anomeri (α e β) che differiscono per:', opts:['Il numero di atomi di carbonio','La configurazione al carbonio anomerico (C1), generato dalla formazione dell\'emiacetale ciclico','La formula molecolare complessiva','Il tipo di legame glicosidico già formato'], answer:1, expl:'Gli anomeri α e β si originano dalla ciclizzazione (formazione dell\'emiacetale) e differiscono solo nella configurazione spaziale al nuovo centro stereogenico, il C1 (carbonio anomerico).'},
+{type:'mc', topic:'Lipidi', q:'Un acido grasso insaturo, rispetto a uno saturo della stessa lunghezza, ha tipicamente:', opts:['Punto di fusione più alto','Punto di fusione più basso, per la presenza di doppi legami che introducono pieghe nella catena','La stessa struttura tridimensionale','Nessuna differenza chimico-fisica'], answer:1, expl:'I doppi legami (specie cis) introducono pieghe che impediscono un impacchettamento compatto, abbassando il punto di fusione rispetto agli acidi grassi saturi lineari.'},
+{type:'fill', topic:'Acidi nucleici', q:'Il legame che unisce i nucleotidi adiacenti nella catena di DNA/RNA, tra il gruppo fosfato di uno zucchero e l\'ossidrile 3\' del successivo, è detto legame ___.', answer:['fosfodiestere']},
+{type:'mc', topic:'Radicali liberi', q:'Il glutatione (un tiolo) protegge le cellule dallo stress ossidativo agendo come:', opts:['Pro-ossidante che genera radicali','Antiossidante non enzimatico che neutralizza specie reattive dell\'ossigeno','Catalizzatore della reazione di Fenton','Substrato per la glicolisi'], answer:1, expl:'Il glutatione, grazie al gruppo tiolico, agisce da antiossidante non enzimatico neutralizzando specie reattive dell\'ossigeno e radicali, proteggendo lipidi, proteine e DNA.'},
+{type:'mc', topic:'Reazione di Fenton', q:'La reazione di Fenton genera radicali idrossilici a partire da perossido di idrogeno in presenza di:', opts:['Ioni sodio','Ioni ferro (Fe2+)','Glucosio','Ossigeno molecolare puro'], answer:1, expl:'La reazione di Fenton (H2O2 + Fe2+ → radicale OH• + OH⁻ + Fe3+) richiede ioni ferro come catalizzatore per generare il radicale idrossilico, altamente reattivo e dannoso.'},
+{type:'mc', topic:'Nomenclatura', q:'Un composto con formula generale R-COOH appartiene alla classe:', opts:['Alcoli','Aldeidi','Acidi carbossilici','Ammine'], answer:2, expl:'Il gruppo funzionale -COOH (carbossile) caratterizza gli acidi carbossilici, distinti da aldeidi (-CHO), alcoli (-OH) e ammine (-NH2).'},
+]
+};
+
+const SUBJECT_LABEL = {bio:'Biologia', fis:'Fisica', chi:'Chimica e propedeutica biochimica', mix:'Mix — tutte le materie'};
+const SUBJECT_COLOR = {bio:'var(--bio)', fis:'var(--fis)', chi:'var(--chi)', mix:'var(--mix)'};
+const COUNT_OPTIONS = [10, 15, 20, 'tutte'];
+
+let cfg = { subject:'bio', count:15, mode:'end' };
+let state = null;
+
+/* ---------- render setup screen controls ---------- */
+function renderSetup(){
+  const sg = document.getElementById('subjectGrid');
+  sg.innerHTML = '';
+  Object.keys(SUBJECT_LABEL).forEach(key=>{
+    const max = key==='mix' ? (BANKS.bio.length+BANKS.fis.length+BANKS.chi.length) : BANKS[key].length;
+    const div = document.createElement('div');
+    div.className = 'subj-card' + (cfg.subject===key ? ' selected':'');
+    div.style.setProperty('--c', SUBJECT_COLOR[key]);
+    div.innerHTML = `<div>
+        <div class="subj-name">${SUBJECT_LABEL[key]}</div>
+        <div class="subj-meta">${max} domande disponibili nel banco</div>
+      </div><div class="radio"></div>`;
+    div.addEventListener('click', ()=>{ cfg.subject = key; renderSetup(); });
+    sg.appendChild(div);
+  });
+
+  const maxAvail = cfg.subject==='mix' ? (BANKS.bio.length+BANKS.fis.length+BANKS.chi.length) : BANKS[cfg.subject].length;
+  const cr = document.getElementById('countRow');
+  cr.innerHTML = '';
+  COUNT_OPTIONS.forEach(opt=>{
+    const val = opt==='tutte' ? maxAvail : opt;
+    if(val > maxAvail && opt!=='tutte') return;
+    const chip = document.createElement('div');
+    chip.className = 'count-chip' + (cfg.count===val ? ' selected':'');
+    chip.textContent = opt==='tutte' ? `Tutte (${maxAvail})` : opt;
+    chip.addEventListener('click', ()=>{ cfg.count = val; renderSetup(); });
+    cr.appendChild(chip);
+  });
+  document.getElementById('countNote').textContent = `Domande disponibili per questa scelta: ${maxAvail}. Ogni estrazione mescola ordine e non ripete domande nella stessa prova.`;
+
+  const mr = document.getElementById('modeRow');
+  mr.innerHTML = '';
+  const modes = [
+    {key:'instant', title:'Vedi subito', desc:'Dopo ogni risposta, mostra immediatamente se è corretta con una breve spiegazione, prima di passare oltre.'},
+    {key:'end', title:'Vedi alla fine', desc:'Come nella prova reale: nessun feedback durante la prova. Correzione completa solo al termine.'}
+  ];
+  modes.forEach(m=>{
+    const div = document.createElement('div');
+    div.className = 'mode-card' + (cfg.mode===m.key ? ' selected':'');
+    div.innerHTML = `<div class="radio"></div><div><div class="mode-title">${m.title}</div><div class="mode-desc">${m.desc}</div></div>`;
+    div.addEventListener('click', ()=>{ cfg.mode = m.key; renderSetup(); });
+    mr.appendChild(div);
+  });
+}
+renderSetup();
+
+document.getElementById('startBtn').addEventListener('click', startExam);
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startExam(){
+  let pool;
+  if(cfg.subject==='mix'){
+    pool = shuffle([
+      ...BANKS.bio.map(q=>({...q, _subj:'bio'})),
+      ...BANKS.fis.map(q=>({...q, _subj:'fis'})),
+      ...BANKS.chi.map(q=>({...q, _subj:'chi'}))
+    ]);
+  } else {
+    pool = shuffle(BANKS[cfg.subject].map(q=>({...q, _subj:cfg.subject})));
+  }
+  const n = Math.min(cfg.count, pool.length);
+  const questions = pool.slice(0, n);
+
+  state = { questions, current:0, answers:new Array(questions.length).fill(null), locked:new Array(questions.length).fill(false) };
+
+  document.getElementById('setup').style.display='none';
+  document.getElementById('results').style.display='none';
+  document.getElementById('exam').style.display='block';
+  document.getElementById('qposTotal').textContent = questions.length;
+  document.getElementById('examSubjLabel').textContent = SUBJECT_LABEL[cfg.subject];
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = state.questions[state.current];
+  const host = document.getElementById('qhost');
+  document.getElementById('qposNow').textContent = state.current+1;
+  document.getElementById('progFill').style.width = ((state.current)/state.questions.length*100)+'%';
+
+  const color = SUBJECT_COLOR[q._subj];
+  const isLocked = cfg.mode==='instant' && state.locked[state.current];
+
+  let inner = `<div class="qcard">
+    <div class="qcard-head" style="background:${color}">
+      <span>${SUBJECT_LABEL[q._subj]}</span><span>${q.topic}</span>
+    </div>
+    <div class="qcard-body">
+    <div class="qtext">`;
+
+  if(q.type==='mc'){
+    inner += q.q + `</div><div class="opts">`;
+    q.opts.forEach((opt,i)=>{
+      let cls = 'opt';
+      if(isLocked){
+        cls += ' locked';
+        if(i===q.answer) cls += ' right-answer';
+        else if(state.answers[state.current]===i) cls += ' wrong-answer';
+      }
+      const checked = state.answers[state.current]===i ? 'checked' : '';
+      inner += `<label class="${cls}"><input type="radio" name="opt" value="${i}" ${checked} ${isLocked?'disabled':''}> ${opt}</label>`;
+    });
+    inner += `</div>`;
+  } else {
+    const parts = q.q.split('___');
+    const val = state.answers[state.current] || '';
+    inner += parts[0] + `<input type="text" class="blank" id="fillInput" placeholder="completa..." value="${val.replace(/"/g,'&quot;')}" ${isLocked?'disabled':''}>` + (parts[1]||'') + `</div>`;
+  }
+
+  if(cfg.mode==='instant'){
+    const ok = isLocked && isCorrect(q, state.answers[state.current]);
+    const attempted = state.answers[state.current]!==null && state.answers[state.current]!==undefined && state.answers[state.current]!=='';
+    inner += `<div class="feedback ${isLocked ? (ok?'ok show':'no show') : ''}">
+      <b>${isLocked ? (ok? '✓ Corretto' : '✗ Non corretto') : ''}</b>
+      ${isLocked ? q.expl : ''}
+    </div>`;
+    if(!isLocked){
+      inner += `<div class="navrow"><div></div><button id="checkBtn" class="primary" ${attempted?'':'disabled'}>Verifica risposta</button></div>`;
+    }
+  }
+
+  inner += `</div></div>`;
+
+  if(!(cfg.mode==='instant' && !isLocked)){
+    inner += `<div class="navrow">
+      <button id="prevBtn" ${state.current===0?'disabled':''}>← Precedente</button>
+      <button id="nextBtn" class="primary">${state.current===state.questions.length-1 ? 'Termina prova' : 'Successiva →'}</button>
+    </div>`;
+  }
+
+  host.innerHTML = inner;
+
+  if(q.type==='mc'){
+    host.querySelectorAll('input[name="opt"]').forEach(inp=>{
+      inp.addEventListener('change', e=>{
+        state.answers[state.current] = parseInt(e.target.value);
+        if(cfg.mode==='instant') renderQuestion();
+      });
+    });
+  } else {
+    const fillEl = document.getElementById('fillInput');
+    if(fillEl){
+      fillEl.addEventListener('input', e=>{ state.answers[state.current] = e.target.value; });
+    }
+  }
+
+  const checkBtn = document.getElementById('checkBtn');
+  if(checkBtn){
+    checkBtn.addEventListener('click', ()=>{
+      state.locked[state.current] = true;
+      renderQuestion();
+    });
+  }
+
+  const prevBtn = document.getElementById('prevBtn');
+  if(prevBtn) prevBtn.addEventListener('click', ()=>{ state.current--; renderQuestion(); });
+
+  const nextBtn = document.getElementById('nextBtn');
+  if(nextBtn) nextBtn.addEventListener('click', ()=>{
+    if(state.current===state.questions.length-1){ finishExam(); }
+    else { state.current++; renderQuestion(); }
+  });
+}
+
+function isCorrect(q, ans){
+  if(ans===null || ans===undefined || ans==='') return false;
+  if(q.type==='mc') return ans===q.answer;
+  const norm = String(ans).trim().toLowerCase();
+  return q.answer.some(a=>a.toLowerCase()===norm);
+}
+
+function finishExam(){
+  document.getElementById('exam').style.display='none';
+  document.getElementById('results').style.display='block';
+  const {questions, answers} = state;
+  let correct = 0;
+  let reviewHtml = '';
+  questions.forEach((q,i)=>{
+    const ok = isCorrect(q, answers[i]);
+    if(ok) correct++;
+    let ansLine;
+    if(q.type==='mc'){
+      const userTxt = answers[i]===null||answers[i]===undefined ? '(nessuna risposta)' : q.opts[answers[i]];
+      const rightTxt = q.opts[q.answer];
+      ansLine = ok
+        ? `<span class="right">✓ ${rightTxt}</span>`
+        : `<span class="yourwrong">✗ tua risposta: ${userTxt}</span><br><span class="right">✓ corretta: ${rightTxt}</span>`;
+    } else {
+      const userTxt = answers[i] || '(vuoto)';
+      ansLine = ok
+        ? `<span class="right">✓ ${userTxt}</span>`
+        : `<span class="yourwrong">✗ tua risposta: ${userTxt}</span><br><span class="right">✓ corretta: ${q.answer[0]}</span>`;
+    }
+    reviewHtml += `<div class="review ${ok?'correct':'wrong'}">
+      <div class="qmeta">${SUBJECT_LABEL[q._subj]} · ${q.topic}</div>
+      <div class="qtext"><b>${i+1}.</b> ${q.q.replace('___','_____')}</div>
+      <div class="ans">${ansLine}</div>
+      <div class="expl">${q.expl||''}</div>
+    </div>`;
+  });
+
+  document.getElementById('resultSubject').textContent = SUBJECT_LABEL[cfg.subject];
+  document.getElementById('scoreBig').textContent = correct+'/'+questions.length;
+  const pct = Math.round(correct/questions.length*100);
+  document.getElementById('scorePct').textContent = pct+'%';
+  let note = pct>=80 ? 'Ottimo, padroneggi bene questi argomenti del syllabus.'
+           : pct>=55 ? 'Buona base: rivedi con calma gli argomenti sbagliati qui sotto.'
+           : 'Serve ripasso più strutturato — usa le spiegazioni sotto come punto di partenza e torna al syllabus ufficiale.';
+  document.getElementById('scoreNote').textContent = note;
+  document.getElementById('reviewHost').innerHTML = reviewHtml;
+}
+
+function goHome(){
+  document.getElementById('results').style.display='none';
+  document.getElementById('exam').style.display='none';
+  document.getElementById('setup').style.display='block';
+}
+</script>
+</body>
+</html>
