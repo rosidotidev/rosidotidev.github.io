@@ -372,6 +372,11 @@ body {
       <span>Untimed practice — start with no time limit</span>
     </label>
 
+    <label class="untimed-toggle">
+      <input type="checkbox" id="officialOnlyToggle" onchange="toggleOfficialOnly()">
+      <span>Official questions only (<span id="officialCountLabel">60</span> available)</span>
+    </label>
+
     <div class="btn-row">
       <button class="btn-start" onclick="startExam()" id="btnStartExam">Start Exam — Draw 60 Random Questions</button>
       <button class="btn-study" onclick="startStudyMode()" id="btnStudy">Study Mode — Browse All Questions</button>
@@ -431,8 +436,24 @@ const MAX_SCORE = 1000;
 let state = null;
 let timerInterval = null;
 
+let officialOnly = (() => {
+  try { return localStorage.getItem('ccafOfficialOnly') === '1'; } catch (e) { return false; }
+})();
+
+function effectivePool(domainKey) {
+  const pool = EXAM_DATA.pool[domainKey];
+  return officialOnly ? pool.filter(q => q.official) : pool;
+}
+
+function totalOfficialCount() {
+  return Object.values(EXAM_DATA.pool).reduce((sum, arr) => sum + arr.filter(q => q.official).length, 0);
+}
+
 function maxSessionSize() {
-  const minPool = Math.min(...EXAM_DATA.domains.map(d => EXAM_DATA.pool[d.key].length));
+  if (officialOnly) {
+    return EXAM_DATA.domains.reduce((sum, d) => sum + effectivePool(d.key).length, 0);
+  }
+  const minPool = Math.min(...EXAM_DATA.domains.map(d => effectivePool(d.key).length));
   return minPool * DOMAIN_COUNT;
 }
 
@@ -478,27 +499,45 @@ function buildSessionWidget() {
 
 function updateSessionWidget() {
   const max = maxSessionSize();
+  const counts = domainDrawCounts(sessionSize).map(c => c.count);
   const perDomain = sessionSize / DOMAIN_COUNT;
+  const perDomainLabel = officialOnly
+    ? (Math.min(...counts) === Math.max(...counts) ? String(counts[0]) : `${Math.min(...counts)}-${Math.max(...counts)}`)
+    : String(perDomain);
   const examSec = sessionSize * SEC_PER_QUESTION;
   const slider = document.getElementById('sessionSlider');
   slider.value = sessionSize;
   const pct = max > SESSION_STEP ? ((sessionSize - SESSION_STEP) / (max - SESSION_STEP)) * 100 : 100;
   slider.style.setProperty('--fill', pct + '%');
   document.getElementById('ssCount').textContent = sessionSize;
-  document.getElementById('ssPerDomain').textContent = perDomain;
+  document.getElementById('ssPerDomain').textContent = perDomainLabel;
   document.getElementById('ssTime').textContent = formatDuration(examSec);
   document.querySelectorAll('.ss-chip').forEach(c =>
     c.classList.toggle('active', parseInt(c.dataset.size, 10) === sessionSize));
   document.getElementById('qCountStat').textContent = sessionSize;
   document.getElementById('timeLimitStat').textContent = formatDuration(examSec);
-  document.getElementById('domainDistLabel').textContent =
-    `Domain distribution (${perDomain} question${perDomain > 1 ? 's' : ''} each, weighted by official exam blueprint)`;
+  document.getElementById('domainDistLabel').textContent = officialOnly
+    ? `Domain distribution (${perDomainLabel} questions each, proportional to official questions available per domain)`
+    : `Domain distribution (${perDomainLabel} question${perDomain > 1 ? 's' : ''} each, weighted by official exam blueprint)`;
   document.getElementById('btnStartExam').textContent = `Start Exam — Draw ${sessionSize} Random Questions`;
   document.getElementById('btnStudy').textContent =
     sessionSize >= max ? 'Study Mode — Browse All Questions' : `Study Mode — ${sessionSize} Questions`;
-  const total = Object.values(EXAM_DATA.pool).reduce((sum, arr) => sum + arr.length, 0);
-  document.getElementById('poolSizeNote').textContent =
-    `Every attempt randomly draws ${perDomain} question${perDomain > 1 ? 's' : ''} from each domain out of the full ${total}-question bank. Your score is a weighted average across domains using the official exam blueprint proportions.`;
+  const total = officialOnly
+    ? totalOfficialCount()
+    : Object.values(EXAM_DATA.pool).reduce((sum, arr) => sum + arr.length, 0);
+  const bankLabel = officialOnly ? 'official' : 'full';
+  document.getElementById('poolSizeNote').textContent = officialOnly
+    ? `Every attempt draws questions proportionally from each domain's official pool, out of the ${bankLabel} ${total}-question bank. Your score is a weighted average across domains using the official exam blueprint proportions.`
+    : `Every attempt randomly draws ${perDomainLabel} question${perDomain > 1 ? 's' : ''} from each domain out of the ${bankLabel} ${total}-question bank. Your score is a weighted average across domains using the official exam blueprint proportions.`;
+}
+
+function toggleOfficialOnly() {
+  officialOnly = document.getElementById('officialOnlyToggle').checked;
+  try { localStorage.setItem('ccafOfficialOnly', officialOnly ? '1' : '0'); } catch (e) {}
+  sessionSize = clampSessionSize(sessionSize);
+  try { localStorage.setItem('ccafSessionSize', String(sessionSize)); } catch (e) {}
+  buildSessionWidget();
+  renderPoolSize();
 }
 
 function shuffleArray(arr) {
@@ -523,24 +562,51 @@ function renderDomainBars() {
 renderDomainBars();
 
 function renderPoolSize() {
-  const total = Object.values(EXAM_DATA.pool).reduce((sum, arr) => sum + arr.length, 0);
+  const total = officialOnly
+    ? totalOfficialCount()
+    : Object.values(EXAM_DATA.pool).reduce((sum, arr) => sum + arr.length, 0);
   document.getElementById('poolSizeStat').textContent = total;
 }
+document.getElementById('officialCountLabel').textContent = totalOfficialCount();
+document.getElementById('officialOnlyToggle').checked = officialOnly;
 renderPoolSize();
 buildSessionWidget();
 
-function drawExamQuestions(perDomain) {
+function domainDrawCounts(totalCount) {
+  if (!officialOnly) {
+    const perDomain = totalCount / DOMAIN_COUNT;
+    return EXAM_DATA.domains.map(d => ({ d, count: perDomain }));
+  }
+  // Official pool sizes vary a lot per domain (8-18), so scale each domain's
+  // draw proportionally to its share of the official pool instead of forcing
+  // an equal per-domain count that some domains couldn't satisfy.
+  const max = maxSessionSize();
+  const counts = EXAM_DATA.domains.map(d => {
+    const available = effectivePool(d.key).length;
+    return { d, available, count: Math.floor((available / max) * totalCount) };
+  });
+  let assigned = counts.reduce((sum, c) => sum + c.count, 0);
+  let remaining = totalCount - assigned;
+  const byRemainder = [...counts].sort((a, b) =>
+    ((b.available / max) * totalCount % 1) - ((a.available / max) * totalCount % 1));
+  for (let i = 0; remaining > 0 && i < byRemainder.length; i++, remaining--) {
+    if (byRemainder[i].count < byRemainder[i].available) byRemainder[i].count++;
+  }
+  return counts;
+}
+
+function drawExamQuestions(totalCount) {
   const drawn = [];
-  EXAM_DATA.domains.forEach(d => {
-    const pool = EXAM_DATA.pool[d.key];
-    const picked = shuffleArray(pool).slice(0, perDomain);
+  domainDrawCounts(totalCount).forEach(({ d, count }) => {
+    const pool = effectivePool(d.key);
+    const picked = shuffleArray(pool).slice(0, count);
     picked.forEach(q => drawn.push(Object.assign({}, q, { domainName: d.name, domainWeight: d.weight })));
   });
   return drawn;
 }
 
 function startExam() {
-  const questions = drawExamQuestions(sessionSize / DOMAIN_COUNT);
+  const questions = drawExamQuestions(sessionSize);
   const untimed = document.getElementById('untimedToggle').checked;
   const totalSec = sessionSize * SEC_PER_QUESTION;
   state = {
@@ -711,7 +777,7 @@ function checkAnswer(idx) {
 function allQuestionsFlat() {
   const flat = [];
   EXAM_DATA.domains.forEach(d => {
-    EXAM_DATA.pool[d.key].forEach(q => flat.push(Object.assign({}, q, { domainName: d.name, domainWeight: d.weight })));
+    effectivePool(d.key).forEach(q => flat.push(Object.assign({}, q, { domainName: d.name, domainWeight: d.weight })));
   });
   return flat;
 }
@@ -721,7 +787,7 @@ let studyState = null;
 function startStudyMode() {
   const questions = sessionSize >= maxSessionSize()
     ? allQuestionsFlat()
-    : drawExamQuestions(sessionSize / DOMAIN_COUNT);
+    : drawExamQuestions(sessionSize);
   studyState = { questions, current: 0 };
   document.getElementById('introScreen').classList.remove('active');
   document.getElementById('studyScreen').classList.add('active');
