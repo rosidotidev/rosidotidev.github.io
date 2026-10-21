@@ -1,1 +1,0 @@
-import{r as u}from"./main-DZ3VZBZC.js";import{t as a}from"./chunk-CLCEvLGV.js";function c(l,u$1){return u.map(e=>{let r=l.values[e.key];if(r===void 0)return{key:e.key,text:null,face:null};let a$1=a(r,e.decimals,u$1,e.rowMinDecimals);return{key:e.key,text:`${a$1}${e.unit?` `+e.unit:``}`,face:e.input===`faces`?r:null}})}export{c as t};
