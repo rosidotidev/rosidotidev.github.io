@@ -1,0 +1,1031 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<title>Simulatore PAC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: una colonna su telefono (risultato, grafico, controlli, spunti, tabella);
+   su desktop controlli a sinistra e risultato + grafico a destra. */
+:root{
+  --f-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --bg:#06171A;
+  --bg-2:#0B2A2F;
+  --surface:#0C2227;
+  --surface-2:#10303A;
+  --line:rgba(160,225,220,.14);
+  --track:rgba(160,225,220,.17);
+  --fg:#EAF6F3;
+  --muted:#8DB0AC;
+  --principal:#4CC3D9;
+  --principal-ink:#7DD8EA;
+  --gain:#FFB84D;
+  --gain-ink:#FFC670;
+  --cost:#FF8F7E;
+  --mint:#7EE0B5;
+  --shadow:0 24px 60px -28px rgba(0,0,0,.7);
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#EDF5F4;--bg-2:#DCEBE9;--surface:#FFFFFF;--surface-2:#F4FAF9;
+    --line:rgba(8,40,45,.12);--track:rgba(8,40,45,.12);
+    --fg:#08262B;--muted:#4F6F6C;
+    --principal:#0C8CA6;--principal-ink:#086B80;
+    --gain:#E08A00;--gain-ink:#9A5800;--mint:#12875A;--cost:#C4421F;
+    --shadow:0 24px 50px -30px rgba(8,40,45,.35);
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#EDF5F4;--bg-2:#DCEBE9;--surface:#FFFFFF;--surface-2:#F4FAF9;
+  --line:rgba(8,40,45,.12);--track:rgba(8,40,45,.12);
+  --fg:#08262B;--muted:#4F6F6C;
+  --principal:#0C8CA6;--principal-ink:#086B80;
+  --gain:#E08A00;--gain-ink:#9A5800;--mint:#12875A;--cost:#C4421F;
+  --shadow:0 24px 50px -30px rgba(8,40,45,.35);
+  color-scheme:light;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* sfondo con due aloni lenti */
+.bg{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.bg i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.35}
+.bg .o1{width:60vmax;height:60vmax;left:-20vmax;top:-22vmax;background:radial-gradient(circle,var(--principal),transparent 65%);animation:drift1 26s ease-in-out infinite alternate}
+.bg .o2{width:55vmax;height:55vmax;right:-22vmax;bottom:-24vmax;background:radial-gradient(circle,var(--gain),transparent 65%);opacity:.22;animation:drift2 32s ease-in-out infinite alternate}
+@keyframes drift1{to{transform:translate(8vmax,6vmax)}}
+@keyframes drift2{to{transform:translate(-8vmax,-5vmax)}}
+
+.app{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding-block:20px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:-.01em}
+.brand svg{width:28px;height:28px;flex:none}
+.top .sub{color:var(--muted);font-size:13px}
+.lang{margin-left:auto;display:flex;padding:3px;border-radius:99px;border:1px solid var(--line);background:var(--surface)}
+.lang button{border:0;background:transparent;min-width:44px;min-height:34px;border-radius:99px;font-weight:700;font-size:12.5px;letter-spacing:.06em;color:var(--muted);cursor:pointer;transition:background .2s,color .2s}
+.lang button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.lang button:focus-visible{outline:2px solid var(--principal);outline-offset:2px}
+
+.grid{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);grid-template-areas:"results" "controls" "ins" "tbl"}
+.results{grid-area:results;display:grid;gap:16px;min-width:0}
+.controls{grid-area:controls}
+.ins{grid-area:ins}
+.tbl{grid-area:tbl}
+@media (min-width:960px){
+  .grid{grid-template-columns:400px minmax(0,1fr);grid-template-areas:"controls results" "ins ins" "tbl tbl";align-items:start;gap:20px}
+}
+@media (min-width:960px) and (min-height:840px){
+  .results{position:sticky;top:20px}
+}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);min-width:0}
+.eyebrow{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* risultato */
+.hero{position:relative;overflow:hidden;isolation:isolate;padding:22px 20px 20px;background:
+  radial-gradient(120% 90% at 0% 0%,color-mix(in srgb,var(--principal) 20%,transparent),transparent 60%),
+  radial-gradient(100% 90% at 100% 100%,color-mix(in srgb,var(--gain) 18%,transparent),transparent 60%),
+  var(--surface)}
+.hero #sparks{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+.hero-in{display:grid;gap:14px;min-width:0}
+.big{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,12.5vw,88px);line-height:1;letter-spacing:-.03em;white-space:nowrap;font-variant-numeric:tabular-nums;
+  background:linear-gradient(100deg,var(--fg) 0%,var(--fg) 45%,var(--gain-ink) 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.06em}
+.big.xl{font-size:clamp(30px,9vw,64px)}
+.big.sheen{animation:sheen 1.1s ease-out}
+@keyframes sheen{from{background-position:100% 0}to{background-position:0 0}}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--muted);background:color-mix(in srgb,var(--surface) 70%,transparent)}
+.split{display:flex;height:14px;border-radius:99px;overflow:hidden;background:var(--track);gap:3px}
+.split i,.split b{display:block;height:100%;border-radius:99px;transition:flex-basis .7s cubic-bezier(.2,.8,.2,1)}
+.split i{background:linear-gradient(90deg,color-mix(in srgb,var(--principal) 70%,var(--bg)),var(--principal));flex:0 0 50%}
+.split b{background:linear-gradient(90deg,var(--gain),color-mix(in srgb,var(--gain) 60%,#fff));flex:0 0 50%}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stat{min-width:0}
+.stat .lab{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.stat .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.stat strong{display:block;font-family:var(--f-display);font-size:clamp(16px,4.6vw,22px);font-weight:700;letter-spacing:-.01em;margin-top:2px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.stat small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
+.hero-act{display:flex;gap:10px;align-items:center;justify-content:flex-start;flex-wrap:wrap}
+.ghost{border:1px solid var(--line);background:transparent;border-radius:12px;padding:9px 14px;cursor:pointer;font-weight:600;font-size:13px;transition:background .2s,border-color .2s}
+.ghost:hover{background:color-mix(in srgb,var(--fg) 8%,transparent)}
+.ghost:focus-visible,.chip:focus-visible,.sw:focus-visible,summary:focus-visible,#chart:focus-visible{outline:2px solid var(--principal);outline-offset:3px}
+
+/* grafico */
+.chart{padding:18px 16px 14px}
+.chart-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.chart-h h2,.controls h2,.ins h2{font-family:var(--f-display);font-size:19px;font-weight:700;letter-spacing:-.01em;margin:0}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:block}
+#chart{display:block;width:100%;height:clamp(250px,58vw,360px);touch-action:pan-y;cursor:crosshair;border-radius:12px}
+.readout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin-top:10px;padding-top:12px;border-top:1px solid var(--line)}
+@media (min-width:560px){.readout{grid-template-columns:1.3fr 1fr 1fr 1fr}}
+.readout .k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.readout strong{display:block;font-family:var(--f-mono);font-weight:500;font-size:14px;margin-top:2px;font-variant-numeric:tabular-nums}
+.readout .when strong{font-family:var(--f-display);font-weight:700;font-size:15px}
+.hint{color:var(--muted);font-size:12px;margin:10px 0 0}
+
+/* controlli */
+.controls{padding:20px 18px;display:grid;gap:22px}
+.controls-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.ctl{display:grid;gap:8px;--c:var(--principal)}
+.ctl[data-k="rate"]{--c:var(--gain)}
+.ctl[data-k="years"]{--c:var(--mint)}
+.ctl[data-k="ter"]{--c:var(--cost)}
+.ctl + .ctl{padding-top:20px;border-top:1px solid var(--line)}
+.ctl-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.ctl-h label{font-weight:700;font-size:15px;display:block}
+.ctl-h small{color:var(--muted);font-size:12.5px;display:block}
+.val{display:flex;align-items:baseline;gap:4px;font-family:var(--f-display);font-weight:700;font-size:28px;line-height:1;color:var(--c);flex:none}
+.val span{font-size:.62em;opacity:.8}
+.val input{font:inherit;color:inherit;background:transparent;border:0;border-bottom:2px dashed var(--line);text-align:right;padding:2px 2px;border-radius:0;min-width:2ch;width:var(--w,6ch);font-variant-numeric:tabular-nums}
+.val input:focus{outline:none;border-bottom:2px solid var(--c)}
+.rng{-webkit-appearance:none;appearance:none;width:100%;height:32px;background:transparent;margin:0;cursor:pointer;--p:0%}
+.rng::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(90deg,var(--c) var(--p),var(--track) var(--p))}
+.rng::-moz-range-track{height:8px;border-radius:99px;background:var(--track)}
+.rng::-moz-range-progress{height:8px;border-radius:99px;background:var(--c)}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:28px;height:28px;border-radius:50%;background:var(--bg);border:6px solid var(--c);margin-top:-10px;box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 22%,transparent),0 6px 16px rgba(0,0,0,.35);transition:box-shadow .2s}
+.rng::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--bg);border:6px solid var(--c);box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 22%,transparent)}
+.rng:active::-webkit-slider-thumb{box-shadow:0 0 0 10px color-mix(in srgb,var(--c) 28%,transparent),0 6px 16px rgba(0,0,0,.35)}
+.rng:focus-visible{outline:2px solid var(--c);outline-offset:4px;border-radius:99px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 14px;border-radius:99px;border:1px solid var(--line);background:transparent;cursor:pointer;font-weight:600;font-size:13.5px;font-variant-numeric:tabular-nums;transition:background .2s,border-color .2s,transform .15s}
+.chip:hover{border-color:color-mix(in srgb,var(--c) 60%,var(--line))}
+.chip:active{transform:scale(.96)}
+.chip[aria-pressed="true"]{background:color-mix(in srgb,var(--c) 22%,transparent);border-color:var(--c);color:var(--fg)}
+.chips.prof{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:460px){.chips.prof{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.chip.pro{flex-direction:column;gap:0;border-radius:16px;padding:7px 8px;min-height:52px}
+.chip.pro b{font-size:13px}
+.chip.pro span{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-weight:500}
+.fine{color:var(--muted);font-size:12.5px;margin:0}
+.opts{display:grid;gap:14px;padding-top:20px;border-top:1px solid var(--line);--c:var(--mint)}
+.ctl.sub{padding:14px 14px 12px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2);animation:subin .3s ease-out}
+.ctl.sub[data-k="taxRate"],.ctl.sub[data-k="inflRate"]{--c:var(--mint)}
+.ctl.sub .val{font-size:24px}
+@keyframes subin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.taxline{margin:0;font-size:12.5px;color:var(--muted);padding-top:10px;border-top:1px dashed var(--line)}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.opt b{display:block;font-size:14.5px}
+.opt small{color:var(--muted);font-size:12.5px;display:block}
+.sw{flex:none;width:54px;height:32px;border-radius:99px;border:1px solid var(--line);background:var(--track);position:relative;cursor:pointer;transition:background .25s,border-color .25s;padding:0}
+.sw i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--fg);transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.sw[aria-checked="true"]{background:color-mix(in srgb,var(--mint) 55%,transparent);border-color:var(--mint)}
+.sw[aria-checked="true"] i{transform:translateX(22px)}
+
+/* spunti */
+.ins{display:grid;gap:12px}
+.ins-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px}
+.ins-c{padding:16px 16px 14px;border-radius:18px;border:1px solid var(--line);background:linear-gradient(180deg,var(--surface-2),var(--surface));display:grid;gap:6px;align-content:start;min-width:0}
+.ins-c .k{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.ins-c strong{font-family:var(--f-display);font-size:25px;line-height:1.1;letter-spacing:-.02em;font-weight:700}
+.ins-c p{margin:0;color:var(--muted);font-size:13.5px}
+.ins-c .ghost{justify-self:start;margin-top:4px}
+
+/* tabella */
+.tbl{padding:6px 16px}
+.tbl summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:14px 0;font-family:var(--f-display);font-weight:700;font-size:17px;border-radius:10px}
+.tbl summary::-webkit-details-marker{display:none}
+.tbl summary::after{content:"";width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .25s;margin-right:6px}
+.tbl[open] summary::after{transform:rotate(-135deg)}
+.tscroll{overflow-x:auto;padding-bottom:12px}
+table{width:100%;border-collapse:collapse;font-family:var(--f-mono);font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+th{font-family:var(--f-body);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:6px 10px;border-bottom:1px solid var(--line)}
+td{text-align:right;padding:8px 10px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+td.g{color:var(--gain-ink)}
+td.c{color:var(--principal-ink)}
+td.b{min-width:120px;width:30%}
+.mbar{display:flex;height:8px;border-radius:99px;overflow:hidden;gap:2px;margin-left:auto}
+.mbar i{background:var(--principal);display:block;min-width:2px}
+.mbar b{background:var(--gain);display:block}
+.note{color:var(--muted);font-size:12.5px;max-width:70ch;margin:22px 0 0}
+
+/* barra compatta che compare scorrendo */
+.mini{position:fixed;left:0;right:0;top:0;z-index:20;padding:calc(env(safe-area-inset-top,0px) + 8px) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);transform:translateY(-110%);transition:transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.mini.on{transform:none}
+.mini-in{max-width:1120px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mini-t span{display:block;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.mini-t strong{font-family:var(--f-display);font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+#spark{width:110px;height:34px;flex:none}
+
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translate(-50%,30px);opacity:0;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:13.5px;z-index:30;transition:opacity .25s,transform .25s;pointer-events:none;max-width:calc(100vw - 32px)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+
+<div class="bg" aria-hidden="true"><i class="o1"></i><i class="o2"></i></div>
+
+<div class="mini" id="mini" aria-hidden="true">
+  <div class="mini-in">
+    <div class="mini-t"><span>Capitale finale</span><strong id="mini-n">–</strong></div>
+    <canvas id="spark"></canvas>
+  </div>
+</div>
+
+<main class="app">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="var(--principal)"/><stop offset="1" stop-color="var(--gain)"/></linearGradient></defs><rect x="2" y="2" width="28" height="28" rx="9" fill="none" stroke="url(#lg)" stroke-width="2"/><path d="M7 23 L13 17 L18 20 L25 9" fill="none" stroke="url(#lg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Simulatore PAC</span>
+    </div>
+    <span class="sub">Piano di accumulo del capitale</span>
+    <div class="lang" role="group" aria-label="Lingua"><button type="button" data-lang="it" aria-pressed="true">IT</button><button type="button" data-lang="en" aria-pressed="false">EN</button></div>
+  </header>
+
+  <div class="grid">
+    <div class="results">
+      <section class="hero card" id="hero" aria-label="Risultato della simulazione">
+        <canvas id="sparks" aria-hidden="true"></canvas>
+        <div class="hero-in">
+          <div class="eyebrow" id="h-eyebrow">Tra 10 anni avrai</div>
+          <div class="big" id="h-big" aria-hidden="true">0 €</div>
+          <p class="sr" id="live" aria-live="polite"></p>
+          <div class="tags"><span class="tag" id="tag-tax" hidden>al netto del 26% di tasse</span><span class="tag" id="tag-infl" hidden>in euro di oggi, con inflazione al 2%</span></div>
+          <div class="split" aria-hidden="true"><i id="sp-c"></i><b id="sp-g"></b></div>
+          <div class="stats">
+            <div class="stat"><div class="lab"><span class="dot" style="background:var(--principal)"></span>Versato</div><strong id="h-con">–</strong><small id="h-con-p"></small></div>
+            <div class="stat"><div class="lab"><span class="dot" style="background:var(--gain)"></span><span id="h-gain-lab">Rendimento</span></div><strong id="h-gain">–</strong><small id="h-gain-p"></small></div>
+            <div class="stat"><div class="lab">Moltiplicatore</div><strong id="h-mult">–</strong><small>per ogni euro versato</small></div>
+          </div>
+          <p class="taxline" id="taxline"></p>
+          <div class="hero-act"><button class="ghost" id="share" type="button">Condividi</button><button class="ghost" id="copy" type="button">Copia riepilogo</button></div>
+        </div>
+      </section>
+
+      <section class="chart card" aria-label="Grafico della crescita">
+        <div class="chart-h">
+          <h2>Come cresce il capitale</h2>
+          <div class="legend"><span><i style="background:var(--principal)"></i>Versato</span><span><i style="background:var(--gain)"></i>Totale con rendimento</span></div>
+        </div>
+        <canvas id="chart" tabindex="0" role="img" aria-label="Grafico del capitale nel tempo. Usa le frecce per scorrere gli anni."></canvas>
+        <div class="readout">
+          <div class="when"><span class="k">Momento</span><strong id="ro-when">–</strong></div>
+          <div><span class="k">Versato</span><strong id="ro-con">–</strong></div>
+          <div><span class="k" id="ro-gain-k">Rendimento</span><strong id="ro-gain">–</strong></div>
+          <div><span class="k">Totale</span><strong id="ro-tot">–</strong></div>
+        </div>
+        <p class="hint" id="chart-hint">Trascina sul grafico per vedere quanto avrai in ogni momento.</p>
+      </section>
+    </div>
+
+    <section class="controls card" aria-label="Parametri del PAC">
+      <div class="controls-h"><h2>I tuoi numeri</h2><button class="ghost" id="reset" type="button">Ripristina esempio</button></div>
+
+      <div class="ctl" data-k="init">
+        <div class="ctl-h">
+          <div><label for="i-init">Versamento iniziale</label><small>Quanto hai già in portafoglio</small></div>
+          <div class="val"><span>€</span><input id="i-init" type="text" inputmode="numeric" autocomplete="off" aria-label="Versamento iniziale in euro"></div>
+        </div>
+        <input class="rng" id="s-init" type="range" aria-label="Versamento iniziale">
+        <div class="chips" role="group" aria-label="Importi iniziali rapidi">
+          <button class="chip" type="button" data-k="init" data-v="0" aria-pressed="false">Zero</button>
+          <button class="chip" type="button" data-k="init" data-v="5000" aria-pressed="false">5k</button>
+          <button class="chip" type="button" data-k="init" data-v="10000" aria-pressed="false">10k</button>
+          <button class="chip" type="button" data-k="init" data-v="20000" aria-pressed="false">20k</button>
+          <button class="chip" type="button" data-k="init" data-v="50000" aria-pressed="false">50k</button>
+          <button class="chip" type="button" data-k="init" data-v="100000" aria-pressed="false">100k</button>
+        </div>
+      </div>
+
+      <div class="ctl" data-k="monthly">
+        <div class="ctl-h">
+          <div><label for="i-monthly">Versamento mensile</label><small>Quanto aggiungi ogni mese</small></div>
+          <div class="val"><span>€</span><input id="i-monthly" type="text" inputmode="numeric" autocomplete="off" aria-label="Versamento mensile in euro"></div>
+        </div>
+        <input class="rng" id="s-monthly" type="range" aria-label="Versamento mensile">
+        <div class="chips" role="group" aria-label="Versamenti mensili rapidi">
+          <button class="chip" type="button" data-k="monthly" data-v="50" aria-pressed="false">50</button>
+          <button class="chip" type="button" data-k="monthly" data-v="100" aria-pressed="false">100</button>
+          <button class="chip" type="button" data-k="monthly" data-v="200" aria-pressed="false">200</button>
+          <button class="chip" type="button" data-k="monthly" data-v="300" aria-pressed="false">300</button>
+          <button class="chip" type="button" data-k="monthly" data-v="500" aria-pressed="false">500</button>
+          <button class="chip" type="button" data-k="monthly" data-v="1000" aria-pressed="false">1.000</button>
+        </div>
+      </div>
+
+      <div class="ctl" data-k="rate">
+        <div class="ctl-h">
+          <div><label for="i-rate">Rendimento annuo medio</label><small>Prima dei costi. Una stima, non una garanzia</small></div>
+          <div class="val"><input id="i-rate" type="text" inputmode="decimal" autocomplete="off" aria-label="Rendimento annuo medio in percentuale"><span>%</span></div>
+        </div>
+        <input class="rng" id="s-rate" type="range" aria-label="Rendimento annuo medio">
+        <div class="chips prof" role="group" aria-label="Profili di rendimento">
+          <button class="chip pro" type="button" data-k="rate" data-v="3" aria-pressed="false"><b>Prudente</b><span>3%</span></button>
+          <button class="chip pro" type="button" data-k="rate" data-v="5" aria-pressed="false"><b>Bilanciato</b><span>5%</span></button>
+          <button class="chip pro" type="button" data-k="rate" data-v="7" aria-pressed="false"><b>Azionario</b><span>7%</span></button>
+          <button class="chip pro" type="button" data-k="rate" data-v="9" aria-pressed="false"><b>Aggressivo</b><span>9%</span></button>
+        </div>
+        <p class="fine">Rendimenti più alti vanno di pari passo con oscillazioni più ampie e con la possibilità di perdite.</p>
+      </div>
+
+      <div class="ctl" data-k="ter">
+        <div class="ctl-h">
+          <div><label for="i-ter">TER medio del portafoglio</label><small>Costo annuo dei fondi, già tolto dal rendimento</small></div>
+          <div class="val"><input id="i-ter" type="text" inputmode="decimal" autocomplete="off" aria-label="TER medio in percentuale"><span>%</span></div>
+        </div>
+        <input class="rng" id="s-ter" type="range" aria-label="TER medio del portafoglio">
+        <div class="chips" role="group" aria-label="Valori di TER rapidi">
+          <button class="chip" type="button" data-k="ter" data-v="0" aria-pressed="false">Zero</button>
+          <button class="chip" type="button" data-k="ter" data-v="0.1" aria-pressed="false">0,10% ETF economico</button>
+          <button class="chip" type="button" data-k="ter" data-v="0.2" aria-pressed="true">0,20%</button>
+          <button class="chip" type="button" data-k="ter" data-v="0.5" aria-pressed="false">0,50% ETF tematico</button>
+          <button class="chip" type="button" data-k="ter" data-v="1.5" aria-pressed="false">1,50% fondo attivo</button>
+        </div>
+      </div>
+
+      <div class="ctl" data-k="years">
+        <div class="ctl-h">
+          <div><label for="i-years">Durata</label><small>Per quanto tempo lasci lavorare il PAC</small></div>
+          <div class="val"><input id="i-years" type="text" inputmode="numeric" autocomplete="off" aria-label="Durata in anni"><span id="u-years">anni</span></div>
+        </div>
+        <input class="rng" id="s-years" type="range" aria-label="Durata in anni">
+        <div class="chips" role="group" aria-label="Durate rapide">
+          <button class="chip" type="button" data-k="years" data-v="5" aria-pressed="false">5 anni</button>
+          <button class="chip" type="button" data-k="years" data-v="10" aria-pressed="false">10 anni</button>
+          <button class="chip" type="button" data-k="years" data-v="15" aria-pressed="false">15 anni</button>
+          <button class="chip" type="button" data-k="years" data-v="20" aria-pressed="false">20 anni</button>
+          <button class="chip" type="button" data-k="years" data-v="30" aria-pressed="false">30 anni</button>
+          <button class="chip" type="button" data-k="years" data-v="40" aria-pressed="false">40 anni</button>
+        </div>
+      </div>
+
+      <div class="opts">
+        <div class="opt"><div><b>Tasse sul prelievo</b><small>Si pagano solo sul guadagno e solo quando prelevi. Il versato non viene tassato.</small></div><button type="button" class="sw" id="sw-tax" role="switch" aria-checked="true" aria-label="Applica le tasse sul prelievo"><i></i></button></div>
+        <div class="ctl sub" id="tax-box" data-k="taxRate">
+          <div class="ctl-h">
+            <div><label for="i-taxRate">Aliquota sul guadagno</label><small>Il 26% è l'aliquota ordinaria</small></div>
+            <div class="val"><input id="i-taxRate" type="text" inputmode="decimal" autocomplete="off" aria-label="Aliquota fiscale in percentuale"><span>%</span></div>
+          </div>
+          <input class="rng" id="s-taxRate" type="range" aria-label="Aliquota fiscale">
+          <div class="chips" role="group" aria-label="Aliquote rapide">
+            <button class="chip" type="button" data-k="taxRate" data-v="12.5" aria-pressed="false">12,5% titoli di Stato</button>
+            <button class="chip" type="button" data-k="taxRate" data-v="20" aria-pressed="false">20%</button>
+            <button class="chip" type="button" data-k="taxRate" data-v="26" aria-pressed="true">26% ordinaria</button>
+          </div>
+        </div>
+        <div class="opt"><div><b>Inflazione</b><small>Mostra tutto in euro di oggi</small></div><button type="button" class="sw" id="sw-infl" role="switch" aria-checked="false" aria-label="Tieni conto dell'inflazione"><i></i></button></div>
+        <div class="ctl sub" id="infl-box" data-k="inflRate" hidden>
+          <div class="ctl-h">
+            <div><label for="i-inflRate">Inflazione annua</label><small>Quanto perde valore il denaro ogni anno</small></div>
+            <div class="val"><input id="i-inflRate" type="text" inputmode="decimal" autocomplete="off" aria-label="Inflazione annua in percentuale"><span>%</span></div>
+          </div>
+          <input class="rng" id="s-inflRate" type="range" aria-label="Inflazione annua">
+          <div class="chips" role="group" aria-label="Valori di inflazione rapidi">
+            <button class="chip" type="button" data-k="inflRate" data-v="1" aria-pressed="false">1%</button>
+            <button class="chip" type="button" data-k="inflRate" data-v="2" aria-pressed="true">2% obiettivo BCE</button>
+            <button class="chip" type="button" data-k="inflRate" data-v="3" aria-pressed="false">3%</button>
+            <button class="chip" type="button" data-k="inflRate" data-v="5" aria-pressed="false">5%</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ins" aria-label="Spunti dal risultato">
+      <h2>Cosa significa</h2>
+      <div class="ins-grid">
+        <article class="ins-c"><span class="k">Punto di svolta</span><strong id="in-turn">–</strong><p id="in-turn-t"></p></article>
+        <article class="ins-c"><span class="k">Rendita indicativa</span><strong id="in-rent">–</strong><p>al mese, prelevando ogni anno il 4% del capitale finale. È una regola empirica, non una promessa.</p></article>
+        <article class="ins-c"><span class="k">E se versassi di più?</span><strong id="in-plus">–</strong><p>di capitale in più con 50 € al mese aggiuntivi.</p><button class="ghost" id="in-try" type="button">Prova +50 € al mese</button></article>
+      </div>
+    </section>
+
+    <details class="tbl card" id="tbl">
+      <summary>Anno per anno</summary>
+      <div class="tscroll">
+        <table>
+          <thead><tr><th>Anno</th><th>Versato</th><th>Rendimento</th><th>Totale</th><th></th></tr></thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+
+  <p class="note">Come funziona il calcolo: il versamento mensile entra a fine mese, il rendimento annuo è composto ogni mese e il TER che indichi viene tolto dal rendimento ogni anno. Le commissioni di acquisto del broker non sono incluse. Le tasse si calcolano solo sul guadagno (valore finale meno versato) e solo al momento del prelievo. L'aliquota del 12,5% vale per la quota investita in titoli di Stato. I rendimenti passati non garantiscono quelli futuri. Questa è una simulazione indicativa e non una consulenza finanziaria.</p>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let lang = 'it';
+try { const sv = localStorage.getItem('pac-lang'); if(sv==='en' || sv==='it') lang = sv; } catch(_){}
+const tr = (it,en) => lang==='en' ? en : it;
+let eur, num, dec1, dec2;
+function mkFmt(){
+  const l = lang==='en' ? 'en-GB' : 'it-IT';
+  eur = new Intl.NumberFormat(l,{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  num = new Intl.NumberFormat(l,{maximumFractionDigits:0});
+  dec1 = new Intl.NumberFormat(l,{maximumFractionDigits:1});
+  dec2 = new Intl.NumberFormat(l,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+mkFmt();
+const MONO = "'JetBrains Mono',ui-monospace,monospace";
+const N = 160;
+const DEF = {init:20000, monthly:200, rate:7, ter:0.2, years:10, taxRate:26, inflRate:2};
+const DECK = new Set(['rate','taxRate','inflRate','ter']);
+const CFG = {
+  init:{min:0,max:250000,step:500,cap:5000000},
+  monthly:{min:0,max:3000,step:25,cap:50000},
+  rate:{min:0,max:12,step:0.1,cap:30},
+  ter:{min:0,max:3,step:0.05,cap:10},
+  years:{min:1,max:40,step:1,cap:60},
+  taxRate:{min:0,max:50,step:0.5,cap:60},
+  inflRate:{min:0,max:10,step:0.1,cap:30}
+};
+const S = Object.assign({}, DEF, {tax:true, infl:false});
+
+/* ---------- calcolo ---------- */
+function simulate(p){
+  const M = p.years*12, rm = Math.pow(1+(p.rate-p.ter)/100,1/12)-1, im = Math.pow(1+p.inflRate/100,1/12);
+  const tot = new Float64Array(M+1), con = new Float64Array(M+1), taxA = new Float64Array(M+1), grossA = new Float64Array(M+1);
+  let b = p.init, c = p.init, cr = p.init;
+  /* la tassa colpisce solo il guadagno (valore - versato) e solo se prelevi in quel momento */
+  const put = m => {
+    const gain = b-c, tax = (p.tax && gain>0) ? gain*p.taxRate/100 : 0, f = p.infl ? Math.pow(im,-m) : 1;
+    tot[m] = (b-tax)*f; con[m] = p.infl ? cr : c; taxA[m] = tax*f; grossA[m] = b*f;
+  };
+  put(0);
+  for(let m=1;m<=M;m++){
+    b = b*(1+rm)+p.monthly; c += p.monthly; cr += p.monthly*(p.infl ? Math.pow(im,-m) : 1); put(m);
+  }
+  return {M, tot, con, taxA, grossA};
+}
+function sample(arr, M){
+  const out = new Float64Array(N+1);
+  for(let i=0;i<=N;i++){
+    const x = i/N*M, i0 = Math.floor(x), i1 = Math.min(i0+1,M), f = x-i0;
+    out[i] = arr[i0]*(1-f)+arr[i1]*f;
+  }
+  return out;
+}
+const sgn = v => (v>=0?'+':'−')+eur.format(Math.abs(v));
+function span(m){
+  const y = Math.floor(m/12), r = m%12, a = [];
+  if(y) a.push(y+(y===1?tr(' anno',' year'):tr(' anni',' years')));
+  if(r) a.push(r+(r===1?tr(' mese',' month'):tr(' mesi',' months')));
+  return a.join(tr(' e ',' and '));
+}
+
+/* ---------- colori per il canvas ---------- */
+let COL = {};
+function readColors(){
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  COL = {fg:g('--fg'), muted:g('--muted'), line:g('--line'), p:g('--principal'), g:g('--gain'), bg:g('--bg')};
+}
+function rgba(hex,a){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  const n = parseInt(hex,16);
+  return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';
+}
+readColors();
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColors);
+new MutationObserver(readColors).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* ---------- stato grafico ---------- */
+let SIM = null, first = true, anim = null, cursor = N, revealStart = 0, reveal = reduce ? 1 : 0, hoverMouse = false;
+const cur = {t:new Float64Array(N+1), c:new Float64Array(N+1), y:S.years};
+const cv = $('chart'), ctx = cv.getContext('2d');
+let W=0,H=0,dpr=1;
+function fitChart(){
+  dpr = Math.min(2, window.devicePixelRatio||1);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+}
+new ResizeObserver(fitChart).observe(cv);
+fitChart();
+
+const sp = $('spark'), sctx = sp.getContext('2d');
+function fitSpark(){
+  const d = Math.min(2, window.devicePixelRatio||1);
+  sp.width = Math.round(110*d); sp.height = Math.round(34*d);
+}
+fitSpark();
+
+const pc = $('sparks'), pctx = pc.getContext('2d');
+let PW=0, PH=0; const parts = [];
+function fitParts(){
+  const r = pc.parentElement.getBoundingClientRect(); PW = r.width; PH = r.height;
+  const d = Math.min(2, window.devicePixelRatio||1);
+  pc.width = Math.round(PW*d); pc.height = Math.round(PH*d);
+}
+new ResizeObserver(fitParts).observe($('hero'));
+function newPart(rand){
+  return {x:Math.random()*PW, y:rand?Math.random()*PH:PH+6, r:1+Math.random()*2.2, v:9+Math.random()*(12+S.rate*2), a:.18+Math.random()*.42, g:Math.random()<.6, ph:Math.random()*6.28};
+}
+function seedParts(){
+  if(reduce) return;
+  const n = Math.round(14+S.rate*3);
+  while(parts.length<n) parts.push(newPart(true));
+  parts.length = Math.min(parts.length, n);
+}
+
+function niceStep(max,count){
+  const raw = max/count, p = Math.pow(10,Math.floor(Math.log10(raw))), f = raw/p;
+  return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p;
+}
+function short(v){
+  if(v>=1e6) return '€'+dec1.format(v/1e6)+tr(' mln',' M');
+  if(v>=1e3) return '€'+dec1.format(v/1e3)+'k';
+  return '€'+Math.round(v);
+}
+function rr(x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+function draw(now){
+  if(!W || !H) return;
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  const L=14, R=14, T=18, B=28, pw=W-L-R, ph=H-T-B, base=T+ph;
+  let max = 0;
+  for(let i=0;i<=N;i++){ if(cur.t[i]>max) max=cur.t[i]; if(cur.c[i]>max) max=cur.c[i]; }
+  if(max<=0) max = 1;
+  const ymax = max*1.12, step = niceStep(ymax,4);
+  const X = i => L+i/N*pw, Y = v => T+(1-v/ymax)*ph;
+
+  ctx.lineWidth = 1; ctx.font = '500 10px '+MONO; ctx.textBaseline = 'bottom'; ctx.textAlign = 'left';
+  for(let v=step; v<ymax*0.97; v+=step){
+    const y = Y(v);
+    ctx.strokeStyle = COL.line; ctx.beginPath(); ctx.moveTo(L,y); ctx.lineTo(W-R,y); ctx.stroke();
+    ctx.fillStyle = COL.muted; ctx.fillText(short(v), L+2, y-3);
+  }
+  ctx.strokeStyle = COL.line; ctx.beginPath(); ctx.moveTo(L,base); ctx.lineTo(W-R,base); ctx.stroke();
+
+  const yrs = Math.max(1,cur.y), cnt = W<480 ? 5 : 8;
+  let s = 1; for(const c of [1,2,5,10,20]){ s = c; if(yrs/c<=cnt) break; }
+  ctx.textBaseline = 'top'; ctx.fillStyle = COL.muted;
+  for(let y=0; y<=yrs+1e-6; y+=s){
+    const x = L+y/yrs*pw;
+    ctx.textAlign = y===0 ? 'left' : (x>W-R-22 ? 'right' : 'center');
+    ctx.fillText(y===0 ? tr('oggi','today') : (W<420 ? y+tr('a','y') : y+tr(' anni',' yrs')), x, base+9);
+    ctx.strokeStyle = COL.line; ctx.beginPath(); ctx.moveTo(x,base); ctx.lineTo(x,base+4); ctx.stroke();
+  }
+
+  const trace = arr => { ctx.moveTo(X(0),Y(arr[0])); for(let i=1;i<=N;i++) ctx.lineTo(X(i),Y(arr[i])); };
+  ctx.save();
+  if(reveal<1){ ctx.beginPath(); ctx.rect(0,0,L+pw*reveal+2,H); ctx.clip(); }
+  const gT = ctx.createLinearGradient(0,T,0,base); gT.addColorStop(0,rgba(COL.g,.5)); gT.addColorStop(1,rgba(COL.g,.03));
+  ctx.beginPath(); trace(cur.t); ctx.lineTo(X(N),base); ctx.lineTo(X(0),base); ctx.closePath(); ctx.fillStyle = gT; ctx.fill();
+  const gC = ctx.createLinearGradient(0,T,0,base); gC.addColorStop(0,rgba(COL.p,.6)); gC.addColorStop(1,rgba(COL.p,.06));
+  ctx.beginPath(); trace(cur.c); ctx.lineTo(X(N),base); ctx.lineTo(X(0),base); ctx.closePath(); ctx.fillStyle = gC; ctx.fill();
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.shadowColor = rgba(COL.g,.85); ctx.shadowBlur = 14; ctx.strokeStyle = COL.g; ctx.lineWidth = 2.6;
+  ctx.beginPath(); trace(cur.t); ctx.stroke();
+  ctx.shadowColor = rgba(COL.p,.85); ctx.strokeStyle = COL.p; ctx.lineWidth = 2;
+  ctx.beginPath(); trace(cur.c); ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+
+  /* punto di svolta */
+  if(SIM && SIM.cross>=0 && !anim){
+    const ci = SIM.cross/SIM.M*N, i = Math.round(ci), x = X(ci);
+    if(reveal>=ci/N){
+      const y = Y(cur.t[i]);
+      ctx.fillStyle = COL.bg; ctx.strokeStyle = COL.g; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x,y,6,0,6.2832); ctx.fill(); ctx.stroke();
+      const label = tr('Punto di svolta','Turning point'), tw = ctx.measureText(label).width+4;
+      ctx.font = '600 11px '+MONO;
+      const lw = ctx.measureText(label).width+16, lx = Math.max(L,Math.min(W-R-lw,x-lw/2)), ly = Math.max(T-6,y-34);
+      rr(lx,ly,lw,22,11); ctx.fillStyle = rgba(COL.bg,.9); ctx.fill(); ctx.strokeStyle = COL.g; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = COL.fg; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(label,lx+lw/2,ly+11.5);
+      ctx.strokeStyle = rgba(COL.g,.5); ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(x,ly+22); ctx.lineTo(x,y-7); ctx.stroke(); ctx.setLineDash([]);
+      ctx.font = '500 10px '+MONO; void tw;
+    }
+  }
+
+  /* cursore */
+  if(reveal>=1){
+    const cx = X(cursor), yt = Y(cur.t[cursor]), yc = Y(cur.c[cursor]);
+    ctx.setLineDash([4,4]); ctx.strokeStyle = rgba(COL.fg,.35); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx,T); ctx.lineTo(cx,base); ctx.stroke(); ctx.setLineDash([]);
+    if(cursor===N && !reduce){
+      const k = (now%1800)/1800;
+      ctx.strokeStyle = rgba(COL.g,(1-k)*.55); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx,yt,6+k*16,0,6.2832); ctx.stroke();
+    }
+    for(const [yy,col] of [[yc,COL.p],[yt,COL.g]]){
+      ctx.fillStyle = col; ctx.strokeStyle = COL.bg; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(cx,yy,5.5,0,6.2832); ctx.fill(); ctx.stroke();
+    }
+  }
+}
+
+function drawSpark(){
+  if(!$('mini').classList.contains('on')) return;
+  const w = sp.width, h = sp.height; sctx.clearRect(0,0,w,h);
+  let max = 0; for(let i=0;i<=N;i++) if(cur.t[i]>max) max = cur.t[i];
+  if(max<=0) return;
+  const X = i => 3+i/N*(w-6), Y = v => h-4-(v/max)*(h-8);
+  const line = (arr,col,lw) => { sctx.beginPath(); sctx.moveTo(X(0),Y(arr[0])); for(let i=1;i<=N;i++) sctx.lineTo(X(i),Y(arr[i])); sctx.strokeStyle = col; sctx.lineWidth = lw*(w/110); sctx.lineJoin = 'round'; sctx.stroke(); };
+  sctx.beginPath(); sctx.moveTo(X(0),Y(cur.t[0])); for(let i=1;i<=N;i++) sctx.lineTo(X(i),Y(cur.t[i])); sctx.lineTo(X(N),h); sctx.lineTo(X(0),h); sctx.closePath();
+  const g = sctx.createLinearGradient(0,0,0,h); g.addColorStop(0,rgba(COL.g,.45)); g.addColorStop(1,rgba(COL.g,0)); sctx.fillStyle = g; sctx.fill();
+  line(cur.c,COL.p,1.6); line(cur.t,COL.g,2);
+}
+
+function drawParts(dt,now){
+  const d = Math.min(2, window.devicePixelRatio||1);
+  pctx.setTransform(d,0,0,d,0,0); pctx.clearRect(0,0,PW,PH);
+  if(reduce) return;
+  for(const p of parts){
+    p.y -= p.v*dt; p.x += Math.sin(now/1500+p.ph)*.14;
+    if(p.y<-6) Object.assign(p,newPart(false));
+    pctx.fillStyle = rgba(p.g?COL.g:COL.p, p.a*Math.min(1,p.y/70+.15));
+    pctx.beginPath(); pctx.arc(p.x,p.y,p.r,0,6.2832); pctx.fill();
+  }
+}
+
+/* contatore del capitale */
+let shown = 0, cnt = null;
+const bigEl = $('h-big'), miniN = $('mini-n');
+function paintBig(v){
+  const t = eur.format(Math.round(v));
+  bigEl.textContent = t; miniN.textContent = t;
+  bigEl.classList.toggle('xl', t.length>11);
+}
+function countTo(v){
+  if(reduce){ shown = v; paintBig(v); return; }
+  cnt = {from:shown, to:v, t0:performance.now(), dur:first?1500:650};
+}
+
+const ease = t => 1-Math.pow(1-t,3);
+let last = 0;
+function loop(now){
+  const dt = Math.min(.05,(now-last)/1000||0); last = now;
+  if(anim){
+    const k = Math.min(1,(now-anim.t0)/anim.dur), e = ease(k);
+    for(let i=0;i<=N;i++){ cur.t[i] = anim.ft[i]+(anim.tt[i]-anim.ft[i])*e; cur.c[i] = anim.fc[i]+(anim.tc[i]-anim.fc[i])*e; }
+    cur.y = anim.fy+(anim.ty-anim.fy)*e;
+    if(k>=1) anim = null;
+  }
+  if(reveal<1){
+    if(!revealStart) revealStart = now;
+    reveal = ease(Math.min(1,(now-revealStart)/1300));
+    if(reveal>.999) reveal = 1;
+  }
+  if(cnt){
+    const k = Math.min(1,(now-cnt.t0)/cnt.dur);
+    shown = cnt.from+(cnt.to-cnt.from)*ease(k); paintBig(shown);
+    if(k>=1) cnt = null;
+  }
+  draw(now); drawSpark(); drawParts(dt,now);
+  requestAnimationFrame(loop);
+}
+
+/* ---------- interfaccia ---------- */
+function fmtInput(k,v){ return k==='ter' ? dec2.format(v) : DECK.has(k) ? dec1.format(v) : k==='years' ? String(v) : num.format(v); }
+function fitInput(inp){ inp.style.setProperty('--w', Math.max(2,inp.value.length+.6)+'ch'); }
+function syncInput(k){ const inp = $('i-'+k); inp.value = fmtInput(k,S[k]); fitInput(inp); }
+function syncSlider(k){
+  const c = CFG[k], sl = $('s-'+k), v = Math.min(c.max,Math.max(c.min,S[k]));
+  sl.value = v; sl.style.setProperty('--p', ((v-c.min)/(c.max-c.min)*100)+'%');
+}
+function syncChips(k){
+  document.querySelectorAll('.chip[data-k="'+k+'"]').forEach(b => b.setAttribute('aria-pressed', Math.abs(parseFloat(b.dataset.v)-S[k])<1e-9 ? 'true' : 'false'));
+}
+function setVal(k,v,from){
+  const c = CFG[k]; let x = v;
+  if(!isFinite(x)) x = c.min;
+  x = Math.min(c.cap,Math.max(c.min,x));
+  const f = k==='ter' ? 100 : 10;
+  x = DECK.has(k) ? Math.round(x*f)/f : Math.round(x);
+  const changed = x!==v;
+  S[k] = x;
+  syncSlider(k); syncChips(k);
+  if(from!=='input' || changed) syncInput(k);
+  if(k==='years') $('u-years').textContent = x===1 ? tr('anno','year') : tr('anni','years');
+  recalc();
+}
+function parseNum(str,k){
+  let s = str.trim();
+  if(DECK.has(k)){ s = s.replace(',','.').replace(/[^0-9.]/g,''); const v = parseFloat(s); return isNaN(v) ? (s===''?0:null) : v; }
+  s = s.replace(/[^0-9]/g,''); if(s==='') return k==='years' ? null : 0; return parseInt(s,10);
+}
+
+function setSeries(sim){
+  const t = sample(sim.tot,sim.M), c = sample(sim.con,sim.M);
+  if(first || reduce){ cur.t.set(t); cur.c.set(c); cur.y = S.years; anim = null; }
+  else anim = {t0:performance.now(), dur:600, ft:Float64Array.from(cur.t), fc:Float64Array.from(cur.c), tt:t, tc:c, fy:cur.y, ty:S.years};
+}
+
+function readout(){
+  if(!SIM) return;
+  const m = Math.round(cursor/N*SIM.M), C = SIM.con[m], T = SIM.tot[m];
+  $('ro-when').textContent = m===0 ? tr('Oggi','Today') : tr('Dopo ','After ')+span(m);
+  $('ro-con').textContent = eur.format(C); $('ro-gain').textContent = sgn(T-C); $('ro-tot').textContent = eur.format(T);
+}
+function setCursor(i){ cursor = Math.max(0,Math.min(N,i)); readout(); }
+
+let liveTimer = 0, lastText = '';
+function recalc(){
+  SIM = simulate(S);
+  const {M,tot,con} = SIM, T = tot[M], C = con[M], G = T-C;
+  SIM.cross = -1;
+  for(let m=0;m<=M;m++){ if(con[m]>0 && (tot[m]-con[m])>con[m]){ SIM.cross = m; break; } }
+  setSeries(SIM); cursor = N; readout();
+
+  const yr = new Date().getFullYear()+S.years;
+  $('h-eyebrow').textContent = lang==='en'
+    ? 'In '+S.years+' '+(S.years===1?'year':'years')+', in '+yr+', you will have'
+    : 'Tra '+S.years+' '+(S.years===1?'anno':'anni')+', nel '+yr+', avrai';
+  $('u-years').textContent = S.years===1 ? tr('anno','year') : tr('anni','years');
+  countTo(T);
+  if(!first){ bigEl.classList.remove('sheen'); void bigEl.offsetWidth; bigEl.classList.add('sheen'); }
+  const pcc = T>0 ? Math.max(0,Math.min(100,Math.round(C/T*100))) : 0;
+  $('h-con').textContent = eur.format(C); $('h-gain').textContent = sgn(G);
+  $('h-con-p').textContent = pcc+tr('% del totale','% of total'); $('h-gain-p').textContent = (G>0?100-pcc:0)+tr('% del totale','% of total');
+  $('h-mult').textContent = C>0 ? '×'+dec2.format(T/C) : '–';
+  $('sp-c').style.flexBasis = (C>0?Math.max(pcc,2):0)+'%'; $('sp-g').style.flexBasis = (G>0?Math.max(100-pcc,2):0)+'%';
+  $('tag-tax').hidden = !S.tax; $('tag-infl').hidden = !S.infl;
+  const pct = dec1.format(S.taxRate)+'%';
+  $('tag-tax').textContent = tr('tasse '+pct+' sul solo guadagno, al prelievo', pct+' tax on gains only, at withdrawal');
+  $('tax-box').hidden = !S.tax; $('infl-box').hidden = !S.infl;
+  $('tag-infl').textContent = tr('in euro di oggi, con inflazione al '+dec1.format(S.inflRate)+'%', 'in today\'s euros, with '+dec1.format(S.inflRate)+'% inflation');
+  const tl = $('taxline');
+  tl.hidden = !(S.tax || S.ter>0);
+  const s0 = S.ter>0 ? simulate(Object.assign({}, S, {ter:0})) : SIM;
+  const parts = [tr('Guadagno lordo ','Gross gain ')+eur.format(s0.grossA[M]-C)];
+  if(S.ter>0) parts.push(tr('costi TER −','fund costs (TER) −')+eur.format(s0.grossA[M]-SIM.grossA[M])+' ('+dec2.format(S.ter)+'%)');
+  if(S.tax) parts.push(tr('tasse al prelievo −','tax at withdrawal −')+eur.format(SIM.taxA[M])+' ('+pct+tr(' solo sul guadagno',' on gains only')+')');
+  parts.push(tr('guadagno netto ','net gain ')+sgn(G));
+  tl.textContent = parts.join(' · ');
+  $('h-gain-lab').textContent = S.tax ? tr('Rendimento netto','Net return') : tr('Rendimento','Return');
+  $('ro-gain-k').textContent = S.tax ? tr('Rend. netto','Net return') : tr('Rendimento','Return');
+  $('chart-hint').textContent = S.tax
+    ? tr('Trascina sul grafico: i valori sono netti, come se prelevassi in quel momento.','Drag on the chart: values are net, as if you withdrew at that moment.')
+    : tr('Trascina sul grafico per vedere quanto avrai in ogni momento.','Drag on the chart to see how much you will have at any moment.');
+
+  /* spunti */
+  if(SIM.cross>=0){
+    $('in-turn').textContent = span(SIM.cross);
+    $('in-turn-t').textContent = tr('È il momento in cui il rendimento accumulato supera tutto ciò che hai versato.','This is when the accumulated return exceeds everything you have paid in.');
+  } else if(C>0){
+    $('in-turn').textContent = tr('Non ancora','Not yet');
+    $('in-turn-t').textContent = lang==='en'
+      ? 'In '+S.years+' '+(S.years===1?'year':'years')+' the return stays below your contributions. More time or a larger amount brings that moment closer.'
+      : 'In '+S.years+' '+(S.years===1?'anno':'anni')+' il rendimento resta sotto ai versamenti. Più tempo o un importo maggiore anticipano il momento.';
+  } else {
+    $('in-turn').textContent = '–';
+    $('in-turn-t').textContent = tr('Inserisci un importo per vedere quando il rendimento supera i versamenti.','Enter an amount to see when the return exceeds your contributions.');
+  }
+  $('in-rent').textContent = '≈ '+eur.format(Math.max(0,T)*0.04/12);
+  const s2 = simulate(Object.assign({},S,{monthly:S.monthly+50}));
+  $('in-plus').textContent = '+'+eur.format(s2.tot[s2.M]-T);
+
+  /* tabella */
+  const rows = [];
+  for(let y=1;y<=S.years;y++){
+    const m = y*12, c = con[m], t = tot[m], g = t-c, w = T>0 ? Math.max(0,t)/T*100 : 0;
+    rows.push('<tr><td>'+y+'</td><td class="c">'+num.format(c)+'</td><td class="g">'+(g<0?'−':'')+num.format(Math.abs(g))+'</td><td>'+num.format(t)+'</td><td class="b"><div class="mbar" style="width:'+w.toFixed(1)+'%"><i style="flex:'+Math.max(0,c).toFixed(2)+'"></i><b style="flex:'+Math.max(0,g).toFixed(2)+'"></b></div></td></tr>');
+  }
+  $('tb').innerHTML = rows.join('');
+
+  lastText = lang==='en'
+    ? 'With '+eur.format(S.init)+' upfront and '+eur.format(S.monthly)+' a month, at '+dec1.format(S.rate)+'% a year'+(S.ter>0?' (TER '+dec2.format(S.ter)+'%)':'')+' for '+S.years+' '+(S.years===1?'year':'years')+', the estimated capital is '+eur.format(T)+': '+eur.format(C)+' paid in and '+sgn(G)+' of return'+(S.tax?', net of tax':'')+(S.infl?', in today\'s euros':'')+'.'
+    : 'Con '+eur.format(S.init)+' iniziali e '+eur.format(S.monthly)+' al mese, al '+dec1.format(S.rate)+'% annuo'+(S.ter>0?' (TER '+dec2.format(S.ter)+'%)':'')+' per '+S.years+' '+(S.years===1?'anno':'anni')+', il capitale stimato è '+eur.format(T)+': '+eur.format(C)+' versati e '+sgn(G)+' di rendimento'+(S.tax?', al netto delle tasse':'')+(S.infl?', in euro di oggi':'')+'.';
+  clearTimeout(liveTimer); liveTimer = setTimeout(()=>{ $('live').textContent = lastText; }, 700);
+  seedParts();
+  first = false;
+}
+
+let toastTimer = 0;
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('on'),1900); }
+
+/* eventi */
+Object.keys(CFG).forEach(k => {
+  const c = CFG[k], sl = $('s-'+k), inp = $('i-'+k);
+  sl.min = c.min; sl.max = c.max; sl.step = c.step;
+  sl.addEventListener('input', () => setVal(k, parseFloat(sl.value), 'slider'));
+  inp.addEventListener('input', () => { const v = parseNum(inp.value,k); if(v!==null) setVal(k,v,'input'); fitInput(inp); });
+  inp.addEventListener('blur', () => syncInput(k));
+  inp.addEventListener('keydown', e => { if(e.key==='Enter') inp.blur(); });
+  inp.addEventListener('focus', () => inp.select());
+});
+document.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => setVal(b.dataset.k, parseFloat(b.dataset.v), 'chip')));
+[['sw-tax','tax'],['sw-infl','infl']].forEach(([id,key]) => {
+  const b = $(id);
+  b.addEventListener('click', () => { S[key] = !S[key]; b.setAttribute('aria-checked', String(S[key])); recalc(); });
+});
+$('reset').addEventListener('click', () => {
+  S.tax = true; S.infl = false;
+  $('sw-tax').setAttribute('aria-checked','true'); $('sw-infl').setAttribute('aria-checked','false');
+  Object.keys(DEF).forEach(k => { S[k] = DEF[k]; syncSlider(k); syncChips(k); syncInput(k); });
+  $('u-years').textContent = tr('anni','years');
+  recalc(); toast(tr('Esempio ripristinato','Example restored'));
+});
+$('in-try').addEventListener('click', () => setVal('monthly', S.monthly+50, 'chip'));
+$('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(lastText); toast(tr('Riepilogo copiato','Summary copied')); }
+  catch(e){
+    const ta = document.createElement('textarea'); ta.value = lastText; ta.setAttribute('readonly',''); ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch(_){}
+    document.body.removeChild(ta); toast(ok ? tr('Riepilogo copiato','Summary copied') : tr('Copia non disponibile qui','Copying is not available here'));
+  }
+});
+
+/* scorrimento sul grafico */
+function idxFrom(e){
+  const r = cv.getBoundingClientRect(), L = 14, R = 14;
+  return Math.round(Math.max(0,Math.min(1,(e.clientX-r.left-L)/(r.width-L-R)))*N);
+}
+cv.addEventListener('pointerdown', e => { try{ cv.setPointerCapture(e.pointerId); }catch(_){} setCursor(idxFrom(e)); });
+cv.addEventListener('pointermove', e => { if(e.pointerType==='mouse'){ hoverMouse = true; setCursor(idxFrom(e)); } else if(e.buttons) setCursor(idxFrom(e)); });
+cv.addEventListener('pointerleave', e => { if(e.pointerType==='mouse' && !e.buttons){ hoverMouse = false; setCursor(N); } });
+cv.addEventListener('keydown', e => {
+  const stepI = Math.max(1,Math.round(N/S.years));
+  if(e.key==='ArrowRight'){ setCursor(cursor+stepI); e.preventDefault(); }
+  else if(e.key==='ArrowLeft'){ setCursor(cursor-stepI); e.preventDefault(); }
+  else if(e.key==='Home'){ setCursor(0); e.preventDefault(); }
+  else if(e.key==='End'){ setCursor(N); e.preventDefault(); }
+});
+
+/* barra compatta */
+new IntersectionObserver(([e]) => { $('mini').classList.toggle('on', !e.isIntersecting && e.boundingClientRect.top<0); }, {threshold:0}).observe($('hero'));
+
+/* ---------- lingua ---------- */
+const EN = {
+"Capitale finale":"Final capital",
+"Simulatore PAC":"PAC Simulator",
+"Piano di accumulo del capitale":"Capital accumulation plan",
+"in euro di oggi, con inflazione al 2%":"in today's euros, with 2% inflation",
+"Versato":"Paid in",
+"Rendimento":"Return",
+"Moltiplicatore":"Multiplier",
+"per ogni euro versato":"per euro paid in",
+"Copia riepilogo":"Copy summary",
+"Condividi":"Share",
+"Come cresce il capitale":"How your capital grows",
+"Totale con rendimento":"Total with return",
+"Momento":"Moment",
+"Totale":"Total",
+"I tuoi numeri":"Your numbers",
+"Ripristina esempio":"Reset example",
+"Versamento iniziale":"Initial deposit",
+"Quanto hai già in portafoglio":"What you already hold",
+"Zero":"None",
+"Versamento mensile":"Monthly deposit",
+"Quanto aggiungi ogni mese":"What you add each month",
+"1.000":"1,000",
+"Rendimento annuo medio":"Average annual return",
+"Prima dei costi. Una stima, non una garanzia":"Before costs. An estimate, not a guarantee",
+"TER medio del portafoglio":"Average portfolio TER",
+"Costo annuo dei fondi, già tolto dal rendimento":"Yearly fund cost, already deducted from the return",
+"TER medio in percentuale":"Average TER in percent",
+"Valori di TER rapidi":"Quick TER values",
+"0,10% ETF economico":"0.10% low-cost ETF",
+"0,20%":"0.20%",
+"0,50% ETF tematico":"0.50% thematic ETF",
+"1,50% fondo attivo":"1.50% active fund",
+"Prudente":"Cautious",
+"Bilanciato":"Balanced",
+"Azionario":"Equity",
+"Aggressivo":"Aggressive",
+"Rendimenti più alti vanno di pari passo con oscillazioni più ampie e con la possibilità di perdite.":"Higher returns come with larger swings and the possibility of losses.",
+"Durata":"Duration",
+"Per quanto tempo lasci lavorare il PAC":"How long you let the plan work",
+"anni":"years",
+"5 anni":"5 years",
+"10 anni":"10 years",
+"15 anni":"15 years",
+"20 anni":"20 years",
+"30 anni":"30 years",
+"40 anni":"40 years",
+"Tasse sul prelievo":"Tax on withdrawal",
+"Si pagano solo sul guadagno e solo quando prelevi. Il versato non viene tassato.":"Paid only on the gain and only when you withdraw. The amount you paid in is not taxed.",
+"26% ordinaria":"26% standard",
+"12,5% titoli di Stato":"12.5% government bonds",
+"Inflazione":"Inflation",
+"Cosa significa":"What it means",
+"Punto di svolta":"Turning point",
+"Rendita indicativa":"Indicative income",
+"al mese, prelevando ogni anno il 4% del capitale finale. È una regola empirica, non una promessa.":"a month, withdrawing 4% of the final capital each year. It is a rule of thumb, not a promise.",
+"E se versassi di più?":"What if you paid in more?",
+"di capitale in più con 50 € al mese aggiuntivi.":"more capital with an extra €50 a month.",
+"Prova +50 € al mese":"Try +€50 a month",
+"Anno per anno":"Year by year",
+"Anno":"Year",
+"Come funziona il calcolo: il versamento mensile entra a fine mese, il rendimento annuo è composto ogni mese e il TER che indichi viene tolto dal rendimento ogni anno. Le commissioni di acquisto del broker non sono incluse. Le tasse si calcolano solo sul guadagno (valore finale meno versato) e solo al momento del prelievo. L'aliquota del 12,5% vale per la quota investita in titoli di Stato. I rendimenti passati non garantiscono quelli futuri. Questa è una simulazione indicativa e non una consulenza finanziaria.":"How the calculation works: the monthly deposit is made at the end of the month, the annual return is compounded monthly and the TER you set is deducted from the return each year. Broker purchase fees are not included. Tax is calculated only on the gain (final value minus the amount paid in) and only when you withdraw. The 12.5% rate applies to the portion invested in government bonds. Past returns do not guarantee future ones. This is an indicative simulation and not financial advice.",
+"Risultato della simulazione":"Simulation result",
+"Grafico della crescita":"Growth chart",
+"Grafico del capitale nel tempo. Usa le frecce per scorrere gli anni.":"Chart of capital over time. Use the arrow keys to move through the years.",
+"Parametri del PAC":"Plan settings",
+"Versamento iniziale in euro":"Initial deposit in euros",
+"Importi iniziali rapidi":"Quick initial amounts",
+"Versamento mensile in euro":"Monthly deposit in euros",
+"Versamenti mensili rapidi":"Quick monthly amounts",
+"Rendimento annuo medio in percentuale":"Average annual return in percent",
+"Profili di rendimento":"Return profiles",
+"Durata in anni":"Duration in years",
+"Durate rapide":"Quick durations",
+"Applica le tasse sul prelievo":"Apply tax on withdrawal",
+"Aliquota fiscale":"Tax rate",
+"Aliquota sul guadagno":"Rate on the gain",
+"Il 26% è l'aliquota ordinaria":"26% is the standard rate",
+"Aliquota fiscale in percentuale":"Tax rate in percent",
+"Aliquote rapide":"Quick rates",
+"20%":"20%",
+"Inflazione annua":"Annual inflation",
+"Quanto perde valore il denaro ogni anno":"How much money loses value each year",
+"Inflazione annua in percentuale":"Annual inflation in percent",
+"Valori di inflazione rapidi":"Quick inflation values",
+"2% obiettivo BCE":"2% ECB target",
+"Mostra tutto in euro di oggi":"Shows everything in today's euros",
+"Tieni conto dell'inflazione":"Account for inflation",
+"Spunti dal risultato":"Insights from the result",
+"Lingua":"Language"
+};
+const has = (o,k) => Object.prototype.hasOwnProperty.call(o,k);
+const T_NODES = [], T_ATTR = [];
+function collectStatic(){
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {acceptNode(n){
+    const p = n.parentNode ? n.parentNode.nodeName : '';
+    if(!n.nodeValue.trim() || /^(SCRIPT|STYLE|TITLE|TEXTAREA)$/.test(p)) return NodeFilter.FILTER_REJECT;
+    return NodeFilter.FILTER_ACCEPT;
+  }});
+  let n;
+  while((n = w.nextNode())){
+    const v = n.nodeValue, k = v.trim();
+    if(has(EN,k)){ const i = v.indexOf(k); T_NODES.push({n, k, lead:v.slice(0,i), trail:v.slice(i+k.length)}); }
+  }
+  document.querySelectorAll('[aria-label]').forEach(el => { const k = el.getAttribute('aria-label'); if(has(EN,k)) T_ATTR.push({el, k}); });
+}
+function applyStatic(){
+  T_NODES.forEach(o => { o.n.nodeValue = o.lead + (lang==='en' ? EN[o.k] : o.k) + o.trail; });
+  T_ATTR.forEach(o => o.el.setAttribute('aria-label', lang==='en' ? EN[o.k] : o.k));
+}
+function markLang(){
+  document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang===lang)));
+  document.documentElement.lang = lang;
+  document.title = tr('Simulatore PAC','PAC Simulator');
+}
+function setLang(l){
+  lang = l;
+  try { localStorage.setItem('pac-lang', l); } catch(_){}
+  mkFmt(); markLang(); applyStatic();
+  Object.keys(CFG).forEach(k => syncInput(k));
+  first = true; recalc(); paintBig(shown);
+}
+document.querySelectorAll('.lang button').forEach(b => b.addEventListener('click', () => { if(b.dataset.lang!==lang) setLang(b.dataset.lang); }));
+
+/* ---------- link condivisibile (nessun server: i numeri stanno nell'indirizzo) ---------- */
+const PMAP = {i:'init', m:'monthly', r:'rate', t:'ter', y:'years', xr:'taxRate', fr:'inflRate'};
+function loadParams(){
+  let q; try { q = new URLSearchParams(location.search); } catch(_){ return; }
+  Object.keys(PMAP).forEach(p => {
+    if(!q.has(p)) return;
+    const k = PMAP[p], c = CFG[k]; let v = parseFloat(q.get(p));
+    if(!isFinite(v)) return;
+    v = Math.min(c.cap, Math.max(c.min, v));
+    const f = k==='ter' ? 100 : 10;
+    S[k] = DECK.has(k) ? Math.round(v*f)/f : Math.round(v);
+  });
+  if(q.has('x')) S.tax = q.get('x')==='1';
+  if(q.has('f')) S.infl = q.get('f')==='1';
+  const l = q.get('l');
+  if(l==='it' || l==='en'){ lang = l; mkFmt(); }
+  $('sw-tax').setAttribute('aria-checked', String(S.tax)); $('sw-infl').setAttribute('aria-checked', String(S.infl));
+}
+function shareUrl(){
+  const q = new URLSearchParams({i:S.init, m:S.monthly, r:S.rate, t:S.ter, y:S.years, x:S.tax?1:0, xr:S.taxRate, f:S.infl?1:0, fr:S.inflRate, l:lang});
+  return location.href.split(/[?#]/)[0]+'?'+q.toString();
+}
+async function copyText(txt, okMsg){
+  try { await navigator.clipboard.writeText(txt); toast(okMsg); }
+  catch(e){
+    const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly',''); ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch(_){}
+    document.body.removeChild(ta); toast(ok ? okMsg : tr('Copia non disponibile qui','Copying is not available here'));
+  }
+}
+$('share').addEventListener('click', () => {
+  copyText(shareUrl(), location.protocol==='file:'
+    ? tr('Link copiato. Funzionerà quando la pagina sarà online','Link copied. It will work once the page is online')
+    : tr('Link copiato','Link copied'));
+});
+
+/* avvio */
+loadParams();
+collectStatic();
+markLang();
+if(lang==='en') applyStatic();
+Object.keys(CFG).forEach(k => { syncSlider(k); syncChips(k); syncInput(k); });
+fitParts();
+seedParts();
+recalc();
+requestAnimationFrame(loop);
+})();
+</script>
+</body></html>
