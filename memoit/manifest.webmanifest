@@ -2,7 +2,7 @@
   "name": "MemoIt",
   "short_name": "MemoIt",
   "description": "Keep your to-do lists in categories.",
-  "start_url": "./categories",
+  "start_url": "./#/categories",
   "scope": "./",
   "display": "standalone",
   "background_color": "#fafbff",
