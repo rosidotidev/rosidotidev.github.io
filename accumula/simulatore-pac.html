@@ -80,9 +80,6 @@ button{font:inherit;color:inherit}
 @media (min-width:960px){
   .grid{grid-template-columns:400px minmax(0,1fr);grid-template-areas:"controls results" "ins ins" "tbl tbl";align-items:start;gap:20px}
 }
-@media (min-width:960px) and (min-height:840px){
-  .results{position:sticky;top:20px}
-}
 
 .card{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);min-width:0}
 .eyebrow{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -322,7 +319,7 @@ td.b{min-width:120px;width:30%}
         <div class="chips prof" role="group" aria-label="Profili di rendimento">
           <button class="chip pro" type="button" data-k="rate" data-v="3" aria-pressed="false"><b>Prudente</b><span>3%</span></button>
           <button class="chip pro" type="button" data-k="rate" data-v="5" aria-pressed="false"><b>Bilanciato</b><span>5%</span></button>
-          <button class="chip pro" type="button" data-k="rate" data-v="7" aria-pressed="false"><b>Azionario</b><span>7%</span></button>
+          <button class="chip pro" type="button" data-k="rate" data-v="7" aria-pressed="false"><b>Coraggioso</b><span>7%</span></button>
           <button class="chip pro" type="button" data-k="rate" data-v="9" aria-pressed="false"><b>Aggressivo</b><span>9%</span></button>
         </div>
         <p class="fine">Rendimenti più alti vanno di pari passo con oscillazioni più ampie e con la possibilità di perdite.</p>
@@ -438,7 +435,7 @@ const DECK = new Set(['rate','taxRate','inflRate','ter']);
 const CFG = {
   init:{min:0,max:250000,step:500,cap:5000000},
   monthly:{min:0,max:3000,step:25,cap:50000},
-  rate:{min:0,max:12,step:0.1,cap:30},
+  rate:{min:0,max:30,step:0.1,cap:30},
   ter:{min:0,max:3,step:0.05,cap:10},
   years:{min:1,max:40,step:1,cap:60},
   taxRate:{min:0,max:50,step:0.5,cap:60},
@@ -890,7 +887,7 @@ const EN = {
 "1,50% fondo attivo":"1.50% active fund",
 "Prudente":"Cautious",
 "Bilanciato":"Balanced",
-"Azionario":"Equity",
+"Coraggioso":"Bold",
 "Aggressivo":"Aggressive",
 "Rendimenti più alti vanno di pari passo con oscillazioni più ampie e con la possibilità di perdite.":"Higher returns come with larger swings and the possibility of losses.",
 "Durata":"Duration",
